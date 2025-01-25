@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -22,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@/components/ui/use-toast";
 
 const objectiveSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -41,6 +43,9 @@ const initiativeSchema = z.object({
 const Dashboard = () => {
   const [viewType, setViewType] = useState<"list" | "tree">("list");
   const [objectives, setObjectives] = useState<Objective[]>([]);
+  const [isObjectiveDialogOpen, setIsObjectiveDialogOpen] = useState(false);
+  const [isInitiativeDialogOpen, setIsInitiativeDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const objectiveForm = useForm({
     resolver: zodResolver(objectiveSchema),
@@ -67,6 +72,56 @@ const Dashboard = () => {
     setObjectives((prev) =>
       prev.map((obj) => (obj.id === id ? { ...obj, deleted: true } : obj))
     );
+    toast({
+      title: "Objective deleted",
+      description: "The objective has been moved to the garbage",
+    });
+  };
+
+  const onObjectiveSubmit = (data: z.infer<typeof objectiveSchema>) => {
+    const newObjective: Objective = {
+      id: crypto.randomUUID(),
+      name: data.name,
+      description: data.description,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      deleted: false,
+      initiatives: [],
+    };
+
+    setObjectives((prev) => [...prev, newObjective]);
+    objectiveForm.reset();
+    setIsObjectiveDialogOpen(false);
+    toast({
+      title: "Objective created",
+      description: "Your new objective has been created successfully",
+    });
+  };
+
+  const onInitiativeSubmit = (data: z.infer<typeof initiativeSchema>) => {
+    const newInitiative = {
+      id: crypto.randomUUID(),
+      name: data.name,
+      description: data.description,
+      objectiveId: data.objectiveId,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      deleted: false,
+    };
+
+    setObjectives((prev) =>
+      prev.map((obj) =>
+        obj.id === data.objectiveId
+          ? { ...obj, initiatives: [...obj.initiatives, newInitiative] }
+          : obj
+      )
+    );
+    initiativeForm.reset();
+    setIsInitiativeDialogOpen(false);
+    toast({
+      title: "Initiative created",
+      description: "Your new initiative has been created successfully",
+    });
   };
 
   return (
@@ -89,7 +144,7 @@ const Dashboard = () => {
             Tree View
           </Button>
 
-          <Dialog>
+          <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -99,9 +154,12 @@ const Dashboard = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add New Objective</DialogTitle>
+                <DialogDescription>
+                  Create a new objective to track your goals
+                </DialogDescription>
               </DialogHeader>
               <Form {...objectiveForm}>
-                <form className="space-y-4">
+                <form onSubmit={objectiveForm.handleSubmit(onObjectiveSubmit)} className="space-y-4">
                   <FormField
                     control={objectiveForm.control}
                     name="name"
@@ -156,7 +214,7 @@ const Dashboard = () => {
             </DialogContent>
           </Dialog>
 
-          <Dialog>
+          <Dialog open={isInitiativeDialogOpen} onOpenChange={setIsInitiativeDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
@@ -166,9 +224,12 @@ const Dashboard = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add New Initiative</DialogTitle>
+                <DialogDescription>
+                  Create a new initiative for an existing objective
+                </DialogDescription>
               </DialogHeader>
               <Form {...initiativeForm}>
-                <form className="space-y-4">
+                <form onSubmit={initiativeForm.handleSubmit(onInitiativeSubmit)} className="space-y-4">
                   <FormField
                     control={initiativeForm.control}
                     name="name"
@@ -205,10 +266,12 @@ const Dashboard = () => {
                             {...field}
                           >
                             <option value="">Select an objective</option>
-                            {objectives.map((obj) => (
-                              <option key={obj.id} value={obj.id}>
-                                {obj.name}
-                              </option>
+                            {objectives
+                              .filter((obj) => !obj.deleted)
+                              .map((obj) => (
+                                <option key={obj.id} value={obj.id}>
+                                  {obj.name}
+                                </option>
                             ))}
                           </select>
                         </FormControl>
