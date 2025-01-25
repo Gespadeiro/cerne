@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { Initiative, Objective } from "@/lib/types";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { Progress } from "@/components/ui/progress";
 import { useState } from "react";
 import { InitiativeDetails } from "./initiative-details";
@@ -34,6 +34,11 @@ export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) 
     setIsInitiativeDialogOpen(true);
   };
 
+  const formatDate = (date: Date) => {
+    if (!isValid(date)) return "Invalid date";
+    return format(date, "MMM d, yyyy");
+  };
+
   return (
     <>
       <Table>
@@ -56,10 +61,10 @@ export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) 
                 <TableCell className="font-medium">{objective.name}</TableCell>
                 <TableCell>{objective.description}</TableCell>
                 <TableCell>
-                  {format(objective.startDate, "MMM d, yyyy")}
+                  {formatDate(objective.startDate)}
                 </TableCell>
                 <TableCell>
-                  {format(objective.endDate, "MMM d, yyyy")}
+                  {formatDate(objective.endDate)}
                 </TableCell>
                 <TableCell>
                   <ul className="list-disc list-inside">
