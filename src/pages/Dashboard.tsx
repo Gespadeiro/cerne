@@ -60,6 +60,7 @@ const Dashboard = () => {
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
       deleted: false,
+      completed: false, // Add the completed property with default value false
     };
 
     setObjectives((prev) =>
