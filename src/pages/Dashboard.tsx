@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ObjectiveCard } from "@/components/objective-card";
-import { Objective } from "@/lib/types";
 import { List, GitBranchPlus, Plus } from "lucide-react";
 import {
   Dialog,
@@ -11,34 +9,11 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useToast } from "@/components/ui/use-toast";
-
-const objectiveSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string(),
-  startDate: z.string(),
-  endDate: z.string(),
-});
-
-const initiativeSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string(),
-  objectiveId: z.string(),
-  startDate: z.string(),
-  endDate: z.string(),
-});
+import { Objective } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { ObjectiveForm } from "@/components/objective-form";
+import { InitiativeForm } from "@/components/initiative-form";
+import { ObjectivesTable } from "@/components/objectives-table";
 
 const Dashboard = () => {
   const [viewType, setViewType] = useState<"list" | "tree">("list");
@@ -46,27 +21,6 @@ const Dashboard = () => {
   const [isObjectiveDialogOpen, setIsObjectiveDialogOpen] = useState(false);
   const [isInitiativeDialogOpen, setIsInitiativeDialogOpen] = useState(false);
   const { toast } = useToast();
-
-  const objectiveForm = useForm({
-    resolver: zodResolver(objectiveSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      startDate: "",
-      endDate: "",
-    },
-  });
-
-  const initiativeForm = useForm({
-    resolver: zodResolver(initiativeSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      objectiveId: "",
-      startDate: "",
-      endDate: "",
-    },
-  });
 
   const handleDeleteObjective = (id: string) => {
     setObjectives((prev) =>
@@ -78,7 +32,7 @@ const Dashboard = () => {
     });
   };
 
-  const onObjectiveSubmit = (data: z.infer<typeof objectiveSchema>) => {
+  const onObjectiveSubmit = (data: any) => {
     const newObjective: Objective = {
       id: crypto.randomUUID(),
       name: data.name,
@@ -90,7 +44,6 @@ const Dashboard = () => {
     };
 
     setObjectives((prev) => [...prev, newObjective]);
-    objectiveForm.reset();
     setIsObjectiveDialogOpen(false);
     toast({
       title: "Objective created",
@@ -98,7 +51,7 @@ const Dashboard = () => {
     });
   };
 
-  const onInitiativeSubmit = (data: z.infer<typeof initiativeSchema>) => {
+  const onInitiativeSubmit = (data: any) => {
     const newInitiative = {
       id: crypto.randomUUID(),
       name: data.name,
@@ -116,7 +69,6 @@ const Dashboard = () => {
           : obj
       )
     );
-    initiativeForm.reset();
     setIsInitiativeDialogOpen(false);
     toast({
       title: "Initiative created",
@@ -158,59 +110,7 @@ const Dashboard = () => {
                   Create a new objective to track your goals
                 </DialogDescription>
               </DialogHeader>
-              <Form {...objectiveForm}>
-                <form onSubmit={objectiveForm.handleSubmit(onObjectiveSubmit)} className="space-y-4">
-                  <FormField
-                    control={objectiveForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={objectiveForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={objectiveForm.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={objectiveForm.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Create Objective</Button>
-                </form>
-              </Form>
+              <ObjectiveForm onSubmit={onObjectiveSubmit} />
             </DialogContent>
           </Dialog>
 
@@ -228,97 +128,19 @@ const Dashboard = () => {
                   Create a new initiative for an existing objective
                 </DialogDescription>
               </DialogHeader>
-              <Form {...initiativeForm}>
-                <form onSubmit={initiativeForm.handleSubmit(onInitiativeSubmit)} className="space-y-4">
-                  <FormField
-                    control={initiativeForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={initiativeForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={initiativeForm.control}
-                    name="objectiveId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Objective</FormLabel>
-                        <FormControl>
-                          <select
-                            className="w-full border rounded-md p-2"
-                            {...field}
-                          >
-                            <option value="">Select an objective</option>
-                            {objectives
-                              .filter((obj) => !obj.deleted)
-                              .map((obj) => (
-                                <option key={obj.id} value={obj.id}>
-                                  {obj.name}
-                                </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={initiativeForm.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={initiativeForm.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Create Initiative</Button>
-                </form>
-              </Form>
+              <InitiativeForm 
+                objectives={objectives}
+                onSubmit={onInitiativeSubmit}
+              />
             </DialogContent>
           </Dialog>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {objectives
-          .filter((obj) => !obj.deleted)
-          .map((objective) => (
-            <ObjectiveCard
-              key={objective.id}
-              objective={objective}
-              onDelete={handleDeleteObjective}
-            />
-          ))}
+      <div className="mt-6">
+        <ObjectivesTable
+          objectives={objectives}
+          onDelete={handleDeleteObjective}
+        />
       </div>
     </div>
   );
