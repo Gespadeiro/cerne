@@ -16,4 +16,5 @@ export interface Initiative {
   startDate: Date;
   endDate: Date;
   deleted: boolean;
+  completed: boolean;
 }
