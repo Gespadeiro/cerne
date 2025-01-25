@@ -5,7 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Initiative } from "@/lib/types";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 
 type InitiativeDetailsProps = {
   initiative: Initiative | null;
@@ -19,6 +19,11 @@ export function InitiativeDetails({
   onOpenChange,
 }: InitiativeDetailsProps) {
   if (!initiative) return null;
+
+  const formatDate = (date: Date) => {
+    if (!isValid(date)) return "Invalid date";
+    return format(date, "MMM d, yyyy");
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -35,13 +40,13 @@ export function InitiativeDetails({
             <div>
               <h4 className="text-sm font-medium">Start Date</h4>
               <p className="text-sm text-muted-foreground">
-                {format(initiative.startDate, "MMM d, yyyy")}
+                {formatDate(initiative.startDate)}
               </p>
             </div>
             <div>
               <h4 className="text-sm font-medium">End Date</h4>
               <p className="text-sm text-muted-foreground">
-                {format(initiative.endDate, "MMM d, yyyy")}
+                {formatDate(initiative.endDate)}
               </p>
             </div>
           </div>
