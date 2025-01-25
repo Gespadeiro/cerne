@@ -1,4 +1,4 @@
-import { ObjectiveCard } from "@/components/objective-card";
+import { ObjectivesTable } from "@/components/objectives-table";
 import { Objective } from "@/lib/types";
 import { useState } from "react";
 
@@ -6,17 +6,12 @@ const Garbage = () => {
   const [deletedItems, setDeletedItems] = useState<Objective[]>([]);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 bg-background min-h-screen">
       <h1 className="text-4xl font-bold mb-8">Garbage</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {deletedItems.map((item) => (
-          <ObjectiveCard
-            key={item.id}
-            objective={item}
-            onDelete={() => {}}
-          />
-        ))}
-      </div>
+      <ObjectivesTable
+        objectives={deletedItems}
+        onDelete={() => {}}
+      />
     </div>
   );
 };
