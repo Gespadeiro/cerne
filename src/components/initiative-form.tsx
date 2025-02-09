@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -74,14 +75,14 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
               <FormLabel>Objective</FormLabel>
               <FormControl>
                 <select
-                  className="w-full border rounded-md p-2"
+                  className="w-full border rounded-md p-2 bg-primary text-primary-foreground hover:bg-primary/90"
                   {...field}
                 >
-                  <option value="">Select an objective</option>
+                  <option value="" className="bg-background text-foreground">Select an objective</option>
                   {objectives
                     .filter((obj) => !obj.deleted)
                     .map((obj) => (
-                      <option key={obj.id} value={obj.id}>
+                      <option key={obj.id} value={obj.id} className="bg-background text-foreground">
                         {obj.name}
                       </option>
                   ))}
