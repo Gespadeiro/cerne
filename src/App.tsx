@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Garbage from "./pages/Garbage";
+import CheckIn from "./pages/CheckIn";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/garbage" element={<Garbage />} />
+                  <Route path="/check-in" element={<CheckIn />} />
                 </Routes>
               </main>
             </div>

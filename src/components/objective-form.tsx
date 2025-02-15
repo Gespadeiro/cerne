@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,6 +8,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +20,7 @@ const objectiveSchema = z.object({
   description: z.string(),
   startDate: z.string(),
   endDate: z.string(),
+  checkInFrequency: z.number().min(1, "Frequency must be at least 1").max(365, "Frequency cannot exceed 365"),
 });
 
 type ObjectiveFormProps = {
@@ -32,6 +35,7 @@ export function ObjectiveForm({ onSubmit }: ObjectiveFormProps) {
       description: "",
       startDate: "",
       endDate: "",
+      checkInFrequency: 7,
     },
   });
 
@@ -47,6 +51,7 @@ export function ObjectiveForm({ onSubmit }: ObjectiveFormProps) {
               <FormControl>
                 <Input {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -59,6 +64,7 @@ export function ObjectiveForm({ onSubmit }: ObjectiveFormProps) {
               <FormControl>
                 <Textarea {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -71,6 +77,7 @@ export function ObjectiveForm({ onSubmit }: ObjectiveFormProps) {
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -83,6 +90,26 @@ export function ObjectiveForm({ onSubmit }: ObjectiveFormProps) {
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="checkInFrequency"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Check-in Frequency (days)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  {...field} 
+                  onChange={e => field.onChange(Number(e.target.value))}
+                  min={1}
+                  max={365}
+                />
+              </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

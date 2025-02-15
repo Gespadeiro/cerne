@@ -1,3 +1,4 @@
+
 export interface Objective {
   id: string;
   name: string;
@@ -6,6 +7,7 @@ export interface Objective {
   endDate: Date;
   deleted: boolean;
   initiatives: Initiative[];
+  checkInFrequency: number;
 }
 
 export interface Initiative {

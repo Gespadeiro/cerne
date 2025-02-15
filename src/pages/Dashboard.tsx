@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { List, GitBranchPlus, Plus } from "lucide-react";
+import { List, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,6 @@ import { InitiativeForm } from "@/components/initiative-form";
 import { ObjectivesTable } from "@/components/objectives-table";
 
 const Dashboard = () => {
-  const [viewType, setViewType] = useState<"list" | "tree">("list");
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [isObjectiveDialogOpen, setIsObjectiveDialogOpen] = useState(false);
   const [isInitiativeDialogOpen, setIsInitiativeDialogOpen] = useState(false);
@@ -39,6 +39,7 @@ const Dashboard = () => {
       description: data.description,
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
+      checkInFrequency: data.checkInFrequency,
       deleted: false,
       initiatives: [],
     };
@@ -60,7 +61,7 @@ const Dashboard = () => {
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
       deleted: false,
-      completed: false, // Add the completed property with default value false
+      completed: false,
     };
 
     setObjectives((prev) =>
@@ -82,19 +83,9 @@ const Dashboard = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Dashboard</h1>
         <div className="flex gap-4">
-          <Button
-            variant={viewType === "list" ? "default" : "outline"}
-            onClick={() => setViewType("list")}
-          >
+          <Button variant="outline">
             <List className="mr-2 h-4 w-4" />
             List View
-          </Button>
-          <Button
-            variant={viewType === "tree" ? "default" : "outline"}
-            onClick={() => setViewType("tree")}
-          >
-            <GitBranchPlus className="mr-2 h-4 w-4" />
-            Tree View
           </Button>
 
           <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
