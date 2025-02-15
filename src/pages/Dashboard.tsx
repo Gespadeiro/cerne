@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { List, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -83,11 +83,6 @@ const Dashboard = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Dashboard</h1>
         <div className="flex gap-4">
-          <Button variant="outline">
-            <List className="mr-2 h-4 w-4" />
-            List View
-          </Button>
-
           <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
             <DialogTrigger asChild>
               <Button>
