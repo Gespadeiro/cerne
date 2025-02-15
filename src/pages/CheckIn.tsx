@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Objective } from "@/lib/types";
 import {
   Table,
@@ -8,12 +9,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format, isValid } from "date-fns";
+import { format, isValid, addDays } from "date-fns";
 
 const CheckIn = () => {
+  // This is temporary - in a real app we'd get this from a shared state or backend
+  const [objectives] = useState<Objective[]>([]);
+
   const formatDate = (date: Date) => {
     if (!isValid(date)) return "Invalid date";
     return format(date, "MMM d, yyyy");
+  };
+
+  const calculateNextCheckIn = (objective: Objective) => {
+    const today = new Date();
+    let nextCheckIn = addDays(objective.startDate, objective.checkInFrequency);
+    
+    // If the next check-in is in the past, calculate the next one from today
+    while (nextCheckIn < today) {
+      nextCheckIn = addDays(nextCheckIn, objective.checkInFrequency);
+    }
+
+    // If next check-in is after end date, return end date
+    if (nextCheckIn > objective.endDate) {
+      return objective.endDate;
+    }
+
+    return nextCheckIn;
   };
 
   return (
@@ -34,7 +55,18 @@ const CheckIn = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Table content will be implemented in the next iteration */}
+            {objectives
+              .filter(obj => !obj.deleted)
+              .map((objective) => (
+                <TableRow key={objective.id}>
+                  <TableCell className="font-medium">{objective.name}</TableCell>
+                  <TableCell>{objective.description}</TableCell>
+                  <TableCell>{formatDate(objective.startDate)}</TableCell>
+                  <TableCell>{formatDate(objective.endDate)}</TableCell>
+                  <TableCell>{objective.checkInFrequency}</TableCell>
+                  <TableCell>{formatDate(calculateNextCheckIn(objective))}</TableCell>
+                </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
