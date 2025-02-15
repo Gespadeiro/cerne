@@ -9,7 +9,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
-import Garbage from "./pages/Garbage";
+import Archive from "./pages/Archive";
 import CheckIn from "./pages/CheckIn";
 
 const queryClient = new QueryClient();
@@ -28,7 +28,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/garbage" element={<Garbage />} />
+                  <Route path="/archive" element={<Archive />} />
                   <Route path="/check-in" element={<CheckIn />} />
                 </Routes>
               </main>

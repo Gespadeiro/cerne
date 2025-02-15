@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Home, Trash2, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, Home, Archive2, ClipboardCheck } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,9 +29,9 @@ const items = [
     icon: ClipboardCheck,
   },
   {
-    title: "Garbage",
-    url: "/garbage",
-    icon: Trash2,
+    title: "Archive",
+    url: "/archive",
+    icon: Archive2,
   },
 ];
 
