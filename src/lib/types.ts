@@ -7,6 +7,7 @@ export interface Objective {
   endDate: Date;
   deleted: boolean;
   initiatives: Initiative[];
+  keyResults: KeyResult[];
   checkInFrequency: number;
 }
 
@@ -19,4 +20,16 @@ export interface Initiative {
   endDate: Date;
   deleted: boolean;
   completed: boolean;
+}
+
+export interface KeyResult {
+  id: string;
+  name: string;
+  description: string;
+  objectiveId: string;
+  startDate: Date;
+  endDate: Date;
+  startingValue: number;
+  goalValue: number;
+  deleted: boolean;
 }

@@ -14,12 +14,14 @@ import { Objective } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { ObjectiveForm } from "@/components/objective-form";
 import { InitiativeForm } from "@/components/initiative-form";
+import { KeyResultForm } from "@/components/key-result-form";
 import { ObjectivesTable } from "@/components/objectives-table";
 
 const Dashboard = () => {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [isObjectiveDialogOpen, setIsObjectiveDialogOpen] = useState(false);
   const [isInitiativeDialogOpen, setIsInitiativeDialogOpen] = useState(false);
+  const [isKeyResultDialogOpen, setIsKeyResultDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handleDeleteObjective = (id: string) => {
@@ -42,6 +44,7 @@ const Dashboard = () => {
       checkInFrequency: data.checkInFrequency,
       deleted: false,
       initiatives: [],
+      keyResults: [],
     };
 
     setObjectives((prev) => [...prev, newObjective]);
@@ -75,6 +78,33 @@ const Dashboard = () => {
     toast({
       title: "Initiative created",
       description: "Your new initiative has been created successfully",
+    });
+  };
+
+  const onKeyResultSubmit = (data: any) => {
+    const newKeyResult = {
+      id: crypto.randomUUID(),
+      name: data.name,
+      description: data.description,
+      objectiveId: data.objectiveId,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      startingValue: data.startingValue,
+      goalValue: data.goalValue,
+      deleted: false,
+    };
+
+    setObjectives((prev) =>
+      prev.map((obj) =>
+        obj.id === data.objectiveId
+          ? { ...obj, keyResults: [...obj.keyResults, newKeyResult] }
+          : obj
+      )
+    );
+    setIsKeyResultDialogOpen(false);
+    toast({
+      title: "Key Result created",
+      description: "Your new key result has been created successfully",
     });
   };
 
@@ -118,6 +148,27 @@ const Dashboard = () => {
               <InitiativeForm 
                 objectives={objectives}
                 onSubmit={onInitiativeSubmit}
+              />
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isKeyResultDialogOpen} onOpenChange={setIsKeyResultDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Key Result
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Key Result</DialogTitle>
+                <DialogDescription>
+                  Create a new key result for an existing objective
+                </DialogDescription>
+              </DialogHeader>
+              <KeyResultForm 
+                objectives={objectives}
+                onSubmit={onKeyResultSubmit}
               />
             </DialogContent>
           </Dialog>
