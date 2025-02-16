@@ -41,107 +41,111 @@ const CheckIn = () => {
           <TabsTrigger value="initiatives">Initiatives</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="key-results">
+        <TabsContent value="key-results" className="space-y-8">
           {objectives
             .filter(obj => !obj.deleted)
             .map(objective => (
               <div key={objective.id} className="mb-8">
                 <h2 className="text-2xl font-bold mb-4">{objective.name}</h2>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>End Date</TableHead>
-                      <TableHead>Next Check-in</TableHead>
-                      <TableHead>Current Value</TableHead>
-                      <TableHead>Confidence Level</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {objective.keyResults
-                      .filter(kr => !kr.deleted)
-                      .map(kr => (
-                        <TableRow key={kr.id}>
-                          <TableCell className="font-medium">{kr.name}</TableCell>
-                          <TableCell>{kr.description}</TableCell>
-                          <TableCell>{formatDate(kr.startDate)}</TableCell>
-                          <TableCell>{formatDate(kr.endDate)}</TableCell>
-                          <TableCell>{formatDate(objective.startDate)}</TableCell>
-                          <TableCell>
-                            <Input 
-                              type="text" 
-                              placeholder="Enter current value" 
-                              className="w-full"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Select>
-                              <SelectTrigger className="w-[100px]">
-                                <SelectValue placeholder="1-9" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
-                                  <SelectItem key={value} value={value.toString()}>
-                                    {value}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Start Date</TableHead>
+                        <TableHead>End Date</TableHead>
+                        <TableHead>Next Check-in</TableHead>
+                        <TableHead>Current Value</TableHead>
+                        <TableHead>Confidence Level</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {objective.keyResults
+                        .filter(kr => !kr.deleted)
+                        .map(kr => (
+                          <TableRow key={kr.id}>
+                            <TableCell className="font-medium">{kr.name}</TableCell>
+                            <TableCell>{kr.description}</TableCell>
+                            <TableCell>{formatDate(kr.startDate)}</TableCell>
+                            <TableCell>{formatDate(kr.endDate)}</TableCell>
+                            <TableCell>{formatDate(objective.startDate)}</TableCell>
+                            <TableCell>
+                              <Input 
+                                type="text" 
+                                placeholder="Enter current value" 
+                                className="w-full"
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Select>
+                                <SelectTrigger className="w-[100px]">
+                                  <SelectValue placeholder="1-9" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
+                                    <SelectItem key={value} value={value.toString()}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                          </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
           ))}
         </TabsContent>
 
-        <TabsContent value="initiatives">
+        <TabsContent value="initiatives" className="space-y-8">
           {objectives
             .filter(obj => !obj.deleted)
             .map(objective => (
               <div key={objective.id} className="mb-8">
                 <h2 className="text-2xl font-bold mb-4">{objective.name}</h2>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>End Date</TableHead>
-                      <TableHead>Next Check-in</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {objective.initiatives
-                      .filter(initiative => !initiative.deleted)
-                      .map(initiative => (
-                        <TableRow key={initiative.id}>
-                          <TableCell className="font-medium">{initiative.name}</TableCell>
-                          <TableCell>{initiative.description}</TableCell>
-                          <TableCell>{formatDate(initiative.startDate)}</TableCell>
-                          <TableCell>{formatDate(initiative.endDate)}</TableCell>
-                          <TableCell>{formatDate(objective.startDate)}</TableCell>
-                          <TableCell>
-                            <Select>
-                              <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="not-started">Not Started</SelectItem>
-                                <SelectItem value="in-progress">In Progress</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
-                                <SelectItem value="blocked">Blocked</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Start Date</TableHead>
+                        <TableHead>End Date</TableHead>
+                        <TableHead>Next Check-in</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {objective.initiatives
+                        .filter(initiative => !initiative.deleted)
+                        .map(initiative => (
+                          <TableRow key={initiative.id}>
+                            <TableCell className="font-medium">{initiative.name}</TableCell>
+                            <TableCell>{initiative.description}</TableCell>
+                            <TableCell>{formatDate(initiative.startDate)}</TableCell>
+                            <TableCell>{formatDate(initiative.endDate)}</TableCell>
+                            <TableCell>{formatDate(objective.startDate)}</TableCell>
+                            <TableCell>
+                              <Select>
+                                <SelectTrigger className="w-[120px]">
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="not-started">Not Started</SelectItem>
+                                  <SelectItem value="in-progress">In Progress</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                  <SelectItem value="blocked">Blocked</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                          </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
           ))}
         </TabsContent>
