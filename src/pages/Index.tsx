@@ -14,9 +14,6 @@ const Index = () => {
   const totalInitiatives = activeObjectives.reduce((acc, obj) => 
     acc + obj.initiatives.filter(i => !i.deleted && !i.completed).length, 0
   );
-  const activeOKRs = activeObjectives.reduce((acc, obj) => 
-    acc + obj.keyResults.filter(kr => !kr.deleted).length, 0
-  );
   const completedObjectives = objectives.filter(obj => obj.deleted);
 
   const checkInsToday = objectives.filter(obj => {
@@ -29,17 +26,6 @@ const Index = () => {
     <div className="container mx-auto p-6">
       <h1 className="text-4xl font-bold mb-8">Welcome to Imprv</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card 
-          className="cursor-pointer" 
-          onClick={() => navigate("/check-in")}
-        >
-          <CardHeader>
-            <CardTitle>Today's Check-ins</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{checkInsToday}</p>
-          </CardContent>
-        </Card>
         <Card 
           className="cursor-pointer" 
           onClick={() => navigate("/dashboard")}
@@ -56,10 +42,10 @@ const Index = () => {
           onClick={() => navigate("/dashboard")}
         >
           <CardHeader>
-            <CardTitle>Active OKR</CardTitle>
+            <CardTitle>Active Initiatives</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{activeOKRs}</p>
+            <p className="text-3xl font-bold">{totalInitiatives}</p>
           </CardContent>
         </Card>
         <Card 
@@ -71,6 +57,17 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{completedObjectives.length}</p>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer" 
+          onClick={() => navigate("/check-in")}
+        >
+          <CardHeader>
+            <CardTitle>Today's Check-ins</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{checkInsToday}</p>
           </CardContent>
         </Card>
       </div>
