@@ -14,6 +14,9 @@ const Index = () => {
   const totalInitiatives = activeObjectives.reduce((acc, obj) => 
     acc + obj.initiatives.filter(i => !i.deleted && !i.completed).length, 0
   );
+  const activeKeyResults = activeObjectives.reduce((acc, obj) => 
+    acc + obj.keyResults.filter(kr => !kr.deleted).length, 0
+  );
   const completedObjectives = objectives.filter(obj => obj.deleted);
 
   const checkInsToday = objectives.filter(obj => {
@@ -25,16 +28,38 @@ const Index = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-4xl font-bold mb-8">Welcome to Imprv</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Card 
+          className="cursor-pointer" 
+          onClick={() => navigate("/check-in")}
+        >
+          <CardHeader>
+            <CardTitle>Today's Check-ins</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{checkInsToday}</p>
+          </CardContent>
+        </Card>
         <Card 
           className="cursor-pointer" 
           onClick={() => navigate("/dashboard")}
         >
           <CardHeader>
-            <CardTitle>Active Objectives</CardTitle>
+            <CardTitle>Active OKR's</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{activeObjectives.length}</p>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer" 
+          onClick={() => navigate("/dashboard")}
+        >
+          <CardHeader>
+            <CardTitle>Active Key Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{activeKeyResults}</p>
           </CardContent>
         </Card>
         <Card 
@@ -57,17 +82,6 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{completedObjectives.length}</p>
-          </CardContent>
-        </Card>
-        <Card 
-          className="cursor-pointer" 
-          onClick={() => navigate("/check-in")}
-        >
-          <CardHeader>
-            <CardTitle>Today's Check-ins</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{checkInsToday}</p>
           </CardContent>
         </Card>
       </div>
