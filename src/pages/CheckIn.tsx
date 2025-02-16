@@ -51,11 +51,9 @@ const CheckIn = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>End Date</TableHead>
-                        <TableHead>Next Check-in</TableHead>
+                        <TableHead>Key Result</TableHead>
+                        <TableHead>Starting Value</TableHead>
+                        <TableHead>Goal Value</TableHead>
                         <TableHead>Current Value</TableHead>
                         <TableHead>Confidence Level</TableHead>
                       </TableRow>
@@ -66,10 +64,8 @@ const CheckIn = () => {
                         .map(kr => (
                           <TableRow key={kr.id}>
                             <TableCell className="font-medium">{kr.name}</TableCell>
-                            <TableCell>{kr.description}</TableCell>
-                            <TableCell>{formatDate(kr.startDate)}</TableCell>
-                            <TableCell>{formatDate(kr.endDate)}</TableCell>
-                            <TableCell>{formatDate(objective.startDate)}</TableCell>
+                            <TableCell>{kr.startingValue}</TableCell>
+                            <TableCell>{kr.goalValue}</TableCell>
                             <TableCell>
                               <Input 
                                 type="text" 
@@ -110,12 +106,9 @@ const CheckIn = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>End Date</TableHead>
-                        <TableHead>Next Check-in</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Initiative</TableHead>
+                        <TableHead>Progress</TableHead>
+                        <TableHead>Confidence Level</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -124,20 +117,30 @@ const CheckIn = () => {
                         .map(initiative => (
                           <TableRow key={initiative.id}>
                             <TableCell className="font-medium">{initiative.name}</TableCell>
-                            <TableCell>{initiative.description}</TableCell>
-                            <TableCell>{formatDate(initiative.startDate)}</TableCell>
-                            <TableCell>{formatDate(initiative.endDate)}</TableCell>
-                            <TableCell>{formatDate(objective.startDate)}</TableCell>
                             <TableCell>
                               <Select>
                                 <SelectTrigger className="w-[120px]">
-                                  <SelectValue placeholder="Select status" />
+                                  <SelectValue placeholder="Select progress" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="not-started">Not Started</SelectItem>
                                   <SelectItem value="in-progress">In Progress</SelectItem>
                                   <SelectItem value="completed">Completed</SelectItem>
                                   <SelectItem value="blocked">Blocked</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>
+                              <Select>
+                                <SelectTrigger className="w-[100px]">
+                                  <SelectValue placeholder="1-9" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
+                                    <SelectItem key={value} value={value.toString()}>
+                                      {value}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             </TableCell>
