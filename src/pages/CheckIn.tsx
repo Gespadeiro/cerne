@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format, isValid } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -21,13 +20,43 @@ import {
 import { Input } from "@/components/ui/input";
 
 const CheckIn = () => {
-  // This is temporary - in a real app we'd get this from a shared state or backend
-  const [objectives] = useState<Objective[]>([]);
-
-  const formatDate = (date: Date) => {
-    if (!isValid(date)) return "Invalid date";
-    return format(date, "MMM d, yyyy");
-  };
+  // Temporary sample data to verify table display
+  const [objectives] = useState<Objective[]>([
+    {
+      id: "1",
+      name: "Sample Objective 1",
+      description: "Sample Description",
+      startDate: new Date(),
+      endDate: new Date(),
+      deleted: false,
+      checkInFrequency: 7,
+      keyResults: [
+        {
+          id: "kr1",
+          name: "Sample Key Result 1",
+          description: "KR Description",
+          objectiveId: "1",
+          startDate: new Date(),
+          endDate: new Date(),
+          startingValue: 0,
+          goalValue: 100,
+          deleted: false
+        }
+      ],
+      initiatives: [
+        {
+          id: "i1",
+          name: "Sample Initiative 1",
+          description: "Initiative Description",
+          objectiveId: "1",
+          startDate: new Date(),
+          endDate: new Date(),
+          deleted: false,
+          completed: false
+        }
+      ]
+    }
+  ]);
 
   return (
     <div className="container mx-auto p-6 bg-background min-h-screen">
