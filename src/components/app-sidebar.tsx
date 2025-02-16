@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Home, Archive2, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, Home, Archive, ClipboardCheck } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -31,7 +31,7 @@ const items = [
   {
     title: "Archive",
     url: "/archive",
-    icon: Archive2,
+    icon: Archive,
   },
 ];
 
