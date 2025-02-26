@@ -8,6 +8,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +22,26 @@ const initiativeSchema = z.object({
   objectiveId: z.string(),
   startDate: z.string(),
   endDate: z.string(),
+}).refine((data) => {
+  const objective = window.objectives?.find(obj => obj.id === data.objectiveId);
+  if (!objective) return true;
+  
+  const startDate = new Date(data.startDate);
+  const objectiveStartDate = new Date(objective.startDate);
+  return startDate >= objectiveStartDate;
+}, {
+  message: "Start date cannot be earlier than the objective's start date",
+  path: ["startDate"]
+}).refine((data) => {
+  const objective = window.objectives?.find(obj => obj.id === data.objectiveId);
+  if (!objective) return true;
+  
+  const endDate = new Date(data.endDate);
+  const objectiveEndDate = new Date(objective.endDate);
+  return endDate <= objectiveEndDate;
+}, {
+  message: "End date cannot be later than the objective's end date",
+  path: ["endDate"]
 });
 
 type InitiativeFormProps = {
@@ -38,7 +59,11 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
       startDate: "",
       endDate: "",
     },
+    context: { objectives },
   });
+
+  // Make objectives available for validation
+  (window as any).objectives = objectives;
 
   return (
     <Form {...form}>
@@ -52,6 +77,7 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
               <FormControl>
                 <Input {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -64,6 +90,7 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
               <FormControl>
                 <Textarea {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -88,6 +115,7 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
                   ))}
                 </select>
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -100,6 +128,7 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -112,6 +141,7 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

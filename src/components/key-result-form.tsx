@@ -24,6 +24,26 @@ const keyResultSchema = z.object({
   endDate: z.string(),
   startingValue: z.number(),
   goalValue: z.number(),
+}).refine((data) => {
+  const objective = window.objectives?.find(obj => obj.id === data.objectiveId);
+  if (!objective) return true;
+  
+  const startDate = new Date(data.startDate);
+  const objectiveStartDate = new Date(objective.startDate);
+  return startDate >= objectiveStartDate;
+}, {
+  message: "Start date cannot be earlier than the objective's start date",
+  path: ["startDate"]
+}).refine((data) => {
+  const objective = window.objectives?.find(obj => obj.id === data.objectiveId);
+  if (!objective) return true;
+  
+  const endDate = new Date(data.endDate);
+  const objectiveEndDate = new Date(objective.endDate);
+  return endDate <= objectiveEndDate;
+}, {
+  message: "End date cannot be later than the objective's end date",
+  path: ["endDate"]
 });
 
 type KeyResultFormProps = {
@@ -43,7 +63,11 @@ export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
       startingValue: 0,
       goalValue: 0,
     },
+    context: { objectives },
   });
+
+  // Make objectives available for validation
+  (window as any).objectives = objectives;
 
   return (
     <Form {...form}>
