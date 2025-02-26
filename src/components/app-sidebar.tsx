@@ -15,7 +15,7 @@ import { ThemeToggle } from "./theme-toggle";
 const items = [
   {
     title: "Home",
-    url: "/",
+    url: "/home",
     icon: Home,
   },
   {

@@ -9,6 +9,7 @@ import Garbage from "@/pages/Garbage";
 import CheckIn from "@/pages/CheckIn";
 import InitiativeDetails from "@/pages/InitiativeDetails";
 import KeyResultDetails from "@/pages/KeyResultDetails";
+import Index from "@/pages/Index";
 import { AppSidebar } from "./components/app-sidebar";
 
 function App() {
@@ -20,7 +21,8 @@ function App() {
             <AppSidebar />
             <main className="flex-1">
               <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="/home" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/archive" element={<Archive />} />
                 <Route path="/garbage" element={<Garbage />} />
