@@ -1,3 +1,5 @@
+
+import { Objective } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -7,12 +9,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
 import { Trash2 } from "lucide-react";
-import { Initiative, Objective } from "@/lib/types";
-import { format, isValid } from "date-fns";
-import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
-import { InitiativeDetails } from "./initiative-details";
 
 interface ObjectivesTableProps {
   objectives: Objective[];
@@ -20,69 +19,62 @@ interface ObjectivesTableProps {
 }
 
 export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) {
-  const [selectedInitiative, setSelectedInitiative] = useState<Initiative | null>(null);
-  const [isInitiativeDialogOpen, setIsInitiativeDialogOpen] = useState(false);
-
-  const calculateProgress = (objective: Objective) => {
-    if (objective.initiatives.length === 0) return 0;
-    const completedInitiatives = objective.initiatives.filter(i => i.completed).length;
-    return Math.round((completedInitiatives / objective.initiatives.length) * 100);
-  };
-
-  const handleInitiativeClick = (initiative: Initiative) => {
-    setSelectedInitiative(initiative);
-    setIsInitiativeDialogOpen(true);
-  };
-
   const formatDate = (date: Date) => {
-    if (!isValid(date)) return "Invalid date";
     return format(date, "MMM d, yyyy");
   };
 
   return (
-    <>
+    <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead>End Date</TableHead>
+            <TableHead>Key Results</TableHead>
             <TableHead>Initiatives</TableHead>
-            <TableHead>Progress</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {objectives
-            .filter((obj) => !obj.deleted)
+            .filter((objective) => !objective.deleted)
             .map((objective) => (
               <TableRow key={objective.id}>
                 <TableCell className="font-medium">{objective.name}</TableCell>
-                <TableCell>{objective.description}</TableCell>
-                <TableCell>
-                  {formatDate(objective.startDate)}
-                </TableCell>
-                <TableCell>
-                  {formatDate(objective.endDate)}
-                </TableCell>
+                <TableCell>{formatDate(objective.startDate)}</TableCell>
+                <TableCell>{formatDate(objective.endDate)}</TableCell>
                 <TableCell>
                   <ul className="list-disc list-inside">
-                    {objective.initiatives.map((initiative) => (
-                      <li 
-                        key={initiative.id} 
-                        className="text-sm text-muted-foreground cursor-pointer hover:text-primary"
-                        onClick={() => handleInitiativeClick(initiative)}
-                      >
-                        {initiative.name}
-                      </li>
-                    ))}
+                    {objective.keyResults
+                      .filter((kr) => !kr.deleted)
+                      .map((kr) => (
+                        <li key={kr.id}>
+                          <Link
+                            to={`/key-results/${kr.id}`}
+                            className="text-primary hover:underline"
+                          >
+                            {kr.name}
+                          </Link>
+                        </li>
+                      ))}
                   </ul>
                 </TableCell>
                 <TableCell>
-                  <div className="w-[60px]">
-                    <Progress value={calculateProgress(objective)} className="h-2" />
-                  </div>
+                  <ul className="list-disc list-inside">
+                    {objective.initiatives
+                      .filter((initiative) => !initiative.deleted)
+                      .map((initiative) => (
+                        <li key={initiative.id}>
+                          <Link
+                            to={`/initiatives/${initiative.id}`}
+                            className="text-primary hover:underline"
+                          >
+                            {initiative.name}
+                          </Link>
+                        </li>
+                      ))}
+                  </ul>
                 </TableCell>
                 <TableCell>
                   <Button
@@ -97,12 +89,6 @@ export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) 
             ))}
         </TableBody>
       </Table>
-
-      <InitiativeDetails
-        initiative={selectedInitiative}
-        open={isInitiativeDialogOpen}
-        onOpenChange={setIsInitiativeDialogOpen}
-      />
-    </>
+    </div>
   );
 }
