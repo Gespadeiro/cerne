@@ -24,8 +24,8 @@ export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) 
   };
 
   return (
-    <div className="rounded-md border w-full">
-      <Table className="w-full">
+    <div className="rounded-md border w-full overflow-x-auto">
+      <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[250px]">Name</TableHead>

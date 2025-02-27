@@ -9,6 +9,262 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      check_ins: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      initiative_check_ins: {
+        Row: {
+          check_in_id: string
+          confidence_level: number
+          created_at: string
+          id: string
+          initiative_id: string
+          notes: string | null
+          progress_status: string
+          updated_at: string
+        }
+        Insert: {
+          check_in_id: string
+          confidence_level: number
+          created_at?: string
+          id?: string
+          initiative_id: string
+          notes?: string | null
+          progress_status: string
+          updated_at?: string
+        }
+        Update: {
+          check_in_id?: string
+          confidence_level?: number
+          created_at?: string
+          id?: string
+          initiative_id?: string
+          notes?: string | null
+          progress_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "initiative_check_ins_check_in_id_fkey"
+            columns: ["check_in_id"]
+            isOneToOne: false
+            referencedRelation: "check_ins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "initiative_check_ins_initiative_id_fkey"
+            columns: ["initiative_id"]
+            isOneToOne: false
+            referencedRelation: "initiatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      initiatives: {
+        Row: {
+          completed: boolean
+          created_at: string
+          deleted: boolean
+          description: string | null
+          end_date: string
+          id: string
+          name: string
+          objective_id: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          deleted?: boolean
+          description?: string | null
+          end_date: string
+          id?: string
+          name: string
+          objective_id: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          deleted?: boolean
+          description?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          objective_id?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "initiatives_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      key_result_check_ins: {
+        Row: {
+          check_in_id: string
+          confidence_level: number
+          created_at: string
+          current_value: number
+          id: string
+          key_result_id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          check_in_id: string
+          confidence_level: number
+          created_at?: string
+          current_value: number
+          id?: string
+          key_result_id: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          check_in_id?: string
+          confidence_level?: number
+          created_at?: string
+          current_value?: number
+          id?: string
+          key_result_id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "key_result_check_ins_check_in_id_fkey"
+            columns: ["check_in_id"]
+            isOneToOne: false
+            referencedRelation: "check_ins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "key_result_check_ins_key_result_id_fkey"
+            columns: ["key_result_id"]
+            isOneToOne: false
+            referencedRelation: "key_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      key_results: {
+        Row: {
+          created_at: string
+          deleted: boolean
+          description: string | null
+          end_date: string
+          goal_value: number
+          id: string
+          name: string
+          objective_id: string
+          start_date: string
+          starting_value: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted?: boolean
+          description?: string | null
+          end_date: string
+          goal_value: number
+          id?: string
+          name: string
+          objective_id: string
+          start_date: string
+          starting_value?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted?: boolean
+          description?: string | null
+          end_date?: string
+          goal_value?: number
+          id?: string
+          name?: string
+          objective_id?: string
+          start_date?: string
+          starting_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "key_results_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      objectives: {
+        Row: {
+          check_in_frequency: number
+          created_at: string
+          deleted: boolean
+          description: string | null
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_frequency?: number
+          created_at?: string
+          deleted?: boolean
+          description?: string | null
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_frequency?: number
+          created_at?: string
+          deleted?: boolean
+          description?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

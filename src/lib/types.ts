@@ -9,6 +9,7 @@ export interface Objective {
   initiatives: Initiative[];
   keyResults: KeyResult[];
   checkInFrequency: number;
+  userId?: string;
 }
 
 export interface Initiative {
@@ -32,4 +33,28 @@ export interface KeyResult {
   startingValue: number;
   goalValue: number;
   deleted: boolean;
+}
+
+export interface CheckIn {
+  id: string;
+  date: Date;
+  userId: string;
+}
+
+export interface KeyResultCheckIn {
+  id: string;
+  checkInId: string;
+  keyResultId: string;
+  currentValue: number;
+  confidenceLevel: number;
+  notes?: string;
+}
+
+export interface InitiativeCheckIn {
+  id: string;
+  checkInId: string;
+  initiativeId: string;
+  progressStatus: 'not-started' | 'in-progress' | 'completed' | 'blocked';
+  confidenceLevel: number;
+  notes?: string;
 }
