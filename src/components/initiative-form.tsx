@@ -16,14 +16,15 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Objective } from "@/lib/types";
 
-const initiativeSchema = z.object({
+// Create a type-safe schema with context
+const createInitiativeSchema = (objectives: Objective[]) => z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string(),
   objectiveId: z.string(),
   startDate: z.string(),
   endDate: z.string(),
 }).refine((data) => {
-  const objective = window.objectives?.find(obj => obj.id === data.objectiveId);
+  const objective = objectives.find(obj => obj.id === data.objectiveId);
   if (!objective) return true;
   
   const startDate = new Date(data.startDate);
@@ -33,7 +34,7 @@ const initiativeSchema = z.object({
   message: "Start date cannot be earlier than the objective's start date",
   path: ["startDate"]
 }).refine((data) => {
-  const objective = window.objectives?.find(obj => obj.id === data.objectiveId);
+  const objective = objectives.find(obj => obj.id === data.objectiveId);
   if (!objective) return true;
   
   const endDate = new Date(data.endDate);
@@ -46,10 +47,12 @@ const initiativeSchema = z.object({
 
 type InitiativeFormProps = {
   objectives: Objective[];
-  onSubmit: (data: z.infer<typeof initiativeSchema>) => void;
+  onSubmit: (data: z.infer<ReturnType<typeof createInitiativeSchema>>) => void;
 };
 
 export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
+  const initiativeSchema = createInitiativeSchema(objectives);
+  
   const form = useForm({
     resolver: zodResolver(initiativeSchema),
     defaultValues: {
@@ -59,11 +62,7 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
       startDate: "",
       endDate: "",
     },
-    context: { objectives },
   });
-
-  // Make objectives available for validation
-  (window as any).objectives = objectives;
 
   return (
     <Form {...form}>

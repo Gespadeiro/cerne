@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Objective } from "@/lib/types";
 
-const keyResultSchema = z.object({
+// Create a type-safe schema with context
+const createKeyResultSchema = (objectives: Objective[]) => z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string(),
   objectiveId: z.string().min(1, "Objective is required"),
@@ -25,7 +26,7 @@ const keyResultSchema = z.object({
   startingValue: z.number(),
   goalValue: z.number(),
 }).refine((data) => {
-  const objective = window.objectives?.find(obj => obj.id === data.objectiveId);
+  const objective = objectives.find(obj => obj.id === data.objectiveId);
   if (!objective) return true;
   
   const startDate = new Date(data.startDate);
@@ -35,7 +36,7 @@ const keyResultSchema = z.object({
   message: "Start date cannot be earlier than the objective's start date",
   path: ["startDate"]
 }).refine((data) => {
-  const objective = window.objectives?.find(obj => obj.id === data.objectiveId);
+  const objective = objectives.find(obj => obj.id === data.objectiveId);
   if (!objective) return true;
   
   const endDate = new Date(data.endDate);
@@ -48,10 +49,12 @@ const keyResultSchema = z.object({
 
 type KeyResultFormProps = {
   objectives: Objective[];
-  onSubmit: (data: z.infer<typeof keyResultSchema>) => void;
+  onSubmit: (data: z.infer<ReturnType<typeof createKeyResultSchema>>) => void;
 };
 
 export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
+  const keyResultSchema = createKeyResultSchema(objectives);
+  
   const form = useForm({
     resolver: zodResolver(keyResultSchema),
     defaultValues: {
@@ -63,11 +66,7 @@ export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
       startingValue: 0,
       goalValue: 0,
     },
-    context: { objectives },
   });
-
-  // Make objectives available for validation
-  (window as any).objectives = objectives;
 
   return (
     <Form {...form}>
