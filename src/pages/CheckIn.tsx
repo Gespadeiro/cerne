@@ -23,6 +23,10 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface LastCheckInValues {
+  [keyResultId: string]: number;
+}
+
 const CheckIn = () => {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,6 +34,7 @@ const CheckIn = () => {
   const [keyResultConfidence, setKeyResultConfidence] = useState<Record<string, string>>({});
   const [initiativeStatus, setInitiativeStatus] = useState<Record<string, string>>({});
   const [initiativeConfidence, setInitiativeConfidence] = useState<Record<string, string>>({});
+  const [lastKeyResultValues, setLastKeyResultValues] = useState<LastCheckInValues>({});
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -114,6 +119,11 @@ const CheckIn = () => {
       });
 
       setObjectives(mappedObjectives);
+      
+      // Fetch the latest check-in values for all key results
+      if (keyResultsData.length > 0) {
+        fetchLatestKeyResultValues(keyResultsData.map(kr => kr.id));
+      }
     } catch (error: any) {
       toast({
         title: "Error fetching data",
@@ -123,6 +133,33 @@ const CheckIn = () => {
       console.error("Error fetching data:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchLatestKeyResultValues = async (keyResultIds: string[]) => {
+    try {
+      // For each key result, get the latest check-in
+      const { data, error } = await supabase
+        .from('key_result_check_ins')
+        .select('*')
+        .in('key_result_id', keyResultIds)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Create a map of key result ID to its latest value
+      const latestValues: LastCheckInValues = {};
+      
+      // Group by key_result_id and take the most recent
+      data?.forEach(checkIn => {
+        if (!latestValues[checkIn.key_result_id]) {
+          latestValues[checkIn.key_result_id] = Number(checkIn.current_value);
+        }
+      });
+
+      setLastKeyResultValues(latestValues);
+    } catch (error: any) {
+      console.error("Error fetching latest key result values:", error);
     }
   };
 
@@ -159,6 +196,13 @@ const CheckIn = () => {
           .insert(keyResultCheckIns);
 
         if (krCheckInError) throw krCheckInError;
+        
+        // Update the lastKeyResultValues with the new check-in values
+        const newLastValues = { ...lastKeyResultValues };
+        keyResultCheckIns.forEach(checkIn => {
+          newLastValues[checkIn.key_result_id] = checkIn.current_value;
+        });
+        setLastKeyResultValues(newLastValues);
       }
 
       // Process initiative check-ins
@@ -242,10 +286,11 @@ const CheckIn = () => {
                           <TableHeader>
                             <TableRow>
                               <TableHead className="font-semibold w-[250px]">Key Result</TableHead>
-                              <TableHead className="font-semibold w-[150px]">Starting Value</TableHead>
-                              <TableHead className="font-semibold w-[150px]">Goal Value</TableHead>
-                              <TableHead className="font-semibold w-[200px]">Current Value</TableHead>
-                              <TableHead className="font-semibold w-[200px]">Confidence Level</TableHead>
+                              <TableHead className="font-semibold w-[120px]">Starting Value</TableHead>
+                              <TableHead className="font-semibold w-[120px]">Current Value</TableHead>
+                              <TableHead className="font-semibold w-[120px]">Goal Value</TableHead>
+                              <TableHead className="font-semibold w-[150px]">Check-in Value</TableHead>
+                              <TableHead className="font-semibold w-[150px]">Confidence Level</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -255,11 +300,12 @@ const CheckIn = () => {
                                 <TableRow key={kr.id}>
                                   <TableCell className="font-medium">{kr.name}</TableCell>
                                   <TableCell>{kr.startingValue}</TableCell>
+                                  <TableCell>{lastKeyResultValues[kr.id] !== undefined ? lastKeyResultValues[kr.id] : kr.startingValue}</TableCell>
                                   <TableCell>{kr.goalValue}</TableCell>
                                   <TableCell>
                                     <Input 
                                       type="text" 
-                                      placeholder="Enter current value"
+                                      placeholder="Enter value"
                                       className="w-full bg-background/50"
                                       value={keyResultValues[kr.id] || ''}
                                       onChange={(e) => setKeyResultValues({
