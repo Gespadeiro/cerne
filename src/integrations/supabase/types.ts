@@ -41,6 +41,7 @@ export type Database = {
           id: string
           initiative_id: string
           notes: string | null
+          progress_percentage: number | null
           progress_status: string
           updated_at: string
         }
@@ -51,6 +52,7 @@ export type Database = {
           id?: string
           initiative_id: string
           notes?: string | null
+          progress_percentage?: number | null
           progress_status: string
           updated_at?: string
         }
@@ -61,6 +63,7 @@ export type Database = {
           id?: string
           initiative_id?: string
           notes?: string | null
+          progress_percentage?: number | null
           progress_status?: string
           updated_at?: string
         }
