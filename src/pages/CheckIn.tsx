@@ -138,9 +138,9 @@ const CheckIn = () => {
                   <div key={objective.id} className="mb-8 w-full">
                     <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
                     <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
-                      <Table className="w-full">
+                      <Table className="w-full table-fixed">
                         <TableHeader>
-                          <TableRow>
+                          <TableRow className="w-full">
                             <TableHead className="font-semibold w-[40%]">Initiative</TableHead>
                             <TableHead className="font-semibold w-[30%]">Progress</TableHead>
                             <TableHead className="font-semibold w-[30%]">Confidence Level</TableHead>
@@ -150,7 +150,7 @@ const CheckIn = () => {
                           {objective.initiatives
                             .filter(initiative => !initiative.deleted)
                             .map(initiative => (
-                              <TableRow key={initiative.id}>
+                              <TableRow key={initiative.id} className="w-full">
                                 <TableCell className="font-medium">{initiative.name}</TableCell>
                                 <TableCell>
                                   <Select>
