@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Objective, CheckIn, KeyResultCheckIn, InitiativeCheckIn } from "@/lib/types";
+import type { Objective, CheckIn as CheckInType, KeyResultCheckIn, InitiativeCheckIn } from "@/lib/types";
 import {
   Table,
   TableBody,
