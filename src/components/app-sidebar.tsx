@@ -40,13 +40,15 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const { user, signOut } = useAuth();
+  const { user, userProfile, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   if (!user) {
     return null;
   }
+
+  const displayName = userProfile?.username || user.email || 'Profile';
 
   const handleSignOut = async () => {
     try {
@@ -90,7 +92,7 @@ export function AppSidebar() {
           <div className="flex flex-col gap-2">
             <Button variant="outline" size="sm" className="justify-start" onClick={() => navigate("/profile")}>
               <User className="mr-2 h-4 w-4" />
-              <span>{user.email}</span>
+              <span>{displayName}</span>
             </Button>
             <Button variant="ghost" size="sm" className="justify-start text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20" onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
