@@ -24,16 +24,16 @@ export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) 
   };
 
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="rounded-md border w-full">
+      <Table className="w-full">
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
+            <TableHead className="w-[250px]">Name</TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead>End Date</TableHead>
-            <TableHead>Key Results</TableHead>
-            <TableHead>Initiatives</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="w-[250px]">Key Results</TableHead>
+            <TableHead className="w-[250px]">Initiatives</TableHead>
+            <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

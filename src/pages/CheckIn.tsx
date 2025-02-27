@@ -60,7 +60,7 @@ const CheckIn = () => {
 
   return (
     <div className="w-full p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full max-w-7xl mx-auto">
         <div className="flex flex-col items-center mb-12 text-center">
           <h1 className="text-4xl font-bold gradient-text mb-4">Progress Check-in</h1>
           <p className="text-muted-foreground max-w-2xl">
@@ -69,28 +69,28 @@ const CheckIn = () => {
           </p>
         </div>
         
-        <div className="glass-card p-6">
-          <Tabs defaultValue="key-results" className="mt-2">
+        <div className="glass-card p-6 w-full">
+          <Tabs defaultValue="key-results" className="mt-2 w-full">
             <TabsList className="w-full flex justify-center mb-6">
               <TabsTrigger value="key-results" className="px-8">Key Results</TabsTrigger>
               <TabsTrigger value="initiatives" className="px-8">Initiatives</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="key-results" className="space-y-8">
+            <TabsContent value="key-results" className="space-y-8 w-full">
               {objectives
                 .filter(obj => !obj.deleted)
                 .map(objective => (
-                  <div key={objective.id} className="mb-8">
+                  <div key={objective.id} className="mb-8 w-full">
                     <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
-                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm">
-                      <Table>
+                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
+                      <Table className="w-full">
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="font-semibold">Key Result</TableHead>
-                            <TableHead className="font-semibold">Starting Value</TableHead>
-                            <TableHead className="font-semibold">Goal Value</TableHead>
-                            <TableHead className="font-semibold">Current Value</TableHead>
-                            <TableHead className="font-semibold">Confidence Level</TableHead>
+                            <TableHead className="font-semibold w-[250px]">Key Result</TableHead>
+                            <TableHead className="font-semibold w-[150px]">Starting Value</TableHead>
+                            <TableHead className="font-semibold w-[150px]">Goal Value</TableHead>
+                            <TableHead className="font-semibold w-[200px]">Current Value</TableHead>
+                            <TableHead className="font-semibold w-[200px]">Confidence Level</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -110,7 +110,7 @@ const CheckIn = () => {
                                 </TableCell>
                                 <TableCell>
                                   <Select>
-                                    <SelectTrigger className="w-[100px]">
+                                    <SelectTrigger className="w-full">
                                       <SelectValue placeholder="1-9" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -131,19 +131,19 @@ const CheckIn = () => {
               ))}
             </TabsContent>
 
-            <TabsContent value="initiatives" className="space-y-8">
+            <TabsContent value="initiatives" className="space-y-8 w-full">
               {objectives
                 .filter(obj => !obj.deleted)
                 .map(objective => (
-                  <div key={objective.id} className="mb-8">
+                  <div key={objective.id} className="mb-8 w-full">
                     <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
-                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm">
-                      <Table>
+                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
+                      <Table className="w-full">
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="font-semibold">Initiative</TableHead>
-                            <TableHead className="font-semibold">Progress</TableHead>
-                            <TableHead className="font-semibold">Confidence Level</TableHead>
+                            <TableHead className="font-semibold w-[40%]">Initiative</TableHead>
+                            <TableHead className="font-semibold w-[30%]">Progress</TableHead>
+                            <TableHead className="font-semibold w-[30%]">Confidence Level</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -154,7 +154,7 @@ const CheckIn = () => {
                                 <TableCell className="font-medium">{initiative.name}</TableCell>
                                 <TableCell>
                                   <Select>
-                                    <SelectTrigger className="w-[120px]">
+                                    <SelectTrigger className="w-full">
                                       <SelectValue placeholder="Select progress" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -167,7 +167,7 @@ const CheckIn = () => {
                                 </TableCell>
                                 <TableCell>
                                   <Select>
-                                    <SelectTrigger className="w-[100px]">
+                                    <SelectTrigger className="w-full">
                                       <SelectValue placeholder="1-9" />
                                     </SelectTrigger>
                                     <SelectContent>
