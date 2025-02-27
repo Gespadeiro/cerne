@@ -12,14 +12,14 @@ import {
 } from "@/components/ui/sidebar";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const items = [
   {
     title: "Home",
-    url: "/home",
+    url: "/",
     icon: Home,
   },
   {
@@ -77,10 +77,10 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

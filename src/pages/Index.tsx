@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ const Index = () => {
   useEffect(() => {
     if (user) {
       fetchDashboardData();
+    } else {
+      setIsLoading(false); // Stop loading if user is not authenticated
     }
   }, [user]);
 
@@ -42,7 +45,7 @@ const Index = () => {
       if (objectivesError) throw objectivesError;
       
       // Get objectives IDs for other queries
-      const objectiveIds = objectivesData.map(obj => obj.id);
+      const objectiveIds = objectivesData?.map(obj => obj.id) || [];
       setActiveObjectives(objectiveIds.length);
       
       // Fetch completed objectives
@@ -52,7 +55,7 @@ const Index = () => {
         .eq('deleted', true);
         
       if (completedError) throw completedError;
-      setCompletedObjectives(completedData.length);
+      setCompletedObjectives(completedData?.length || 0);
       
       if (objectiveIds.length > 0) {
         // Fetch active key results
@@ -65,7 +68,7 @@ const Index = () => {
           .in('objective_id', objectiveIds);
           
         if (keyResultsError) throw keyResultsError;
-        setActiveKeyResults(keyResultsData.length);
+        setActiveKeyResults(keyResultsData?.length || 0);
         
         // Fetch active initiatives
         const { data: initiativesData, error: initiativesError } = await supabase
@@ -78,7 +81,7 @@ const Index = () => {
           .in('objective_id', objectiveIds);
           
         if (initiativesError) throw initiativesError;
-        setActiveInitiatives(initiativesData.length);
+        setActiveInitiatives(initiativesData?.length || 0);
       }
       
       // Calculate today's check-ins
@@ -93,7 +96,7 @@ const Index = () => {
         
         let todayCheckInsCount = 0;
         
-        objectivesWithFrequency.forEach(obj => {
+        objectivesWithFrequency?.forEach(obj => {
           const startDate = new Date(obj.start_date);
           const today = new Date();
           const daysSinceStart = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
