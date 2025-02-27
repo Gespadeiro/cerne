@@ -24,7 +24,7 @@ export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) 
   };
 
   return (
-    <div className="rounded-md border w-full overflow-hidden">
+    <div className="w-full rounded-md border">
       <div className="w-full overflow-x-auto">
         <Table>
           <TableHeader>

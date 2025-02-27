@@ -210,7 +210,7 @@ const CheckIn = () => {
 
   return (
     <div className="w-full p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
-      <div className="w-full px-4 mx-auto">
+      <div className="w-full">
         <div className="flex flex-col items-center mb-12 text-center">
           <h1 className="text-4xl font-bold gradient-text mb-4">Progress Check-in</h1>
           <p className="text-muted-foreground max-w-2xl">
@@ -237,7 +237,7 @@ const CheckIn = () => {
                   <div key={objective.id} className="mb-8 w-full">
                     <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
                     <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
-                      <div className="w-full overflow-x-auto">
+                      <div className="w-full">
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -310,7 +310,7 @@ const CheckIn = () => {
                   <div key={objective.id} className="mb-8 w-full">
                     <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
                     <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
-                      <div className="w-full overflow-x-auto">
+                      <div className="w-full">
                         <Table>
                           <TableHeader>
                             <TableRow>

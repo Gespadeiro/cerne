@@ -92,6 +92,18 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Force tables to use full width */
+  table {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+  
+  /* Remove any max-width constraints on containers */
+  .max-w-7xl {
+    max-width: none !important;
+    width: 100% !important;
+  }
 }
 
 .gradient-text {
@@ -104,24 +116,6 @@
 
 /* Fix for table responsiveness */
 .overflow-x-auto {
-  width: 100%;
+  width: 100% !important;
   display: block;
-}
-
-table {
-  width: 100%;
-  min-width: 100%;
-  table-layout: fixed;
-}
-
-/* Ensure containers use full width */
-.max-w-7xl {
-  width: 100%;
-  max-width: 100% !important;
-}
-
-@media (min-width: 1280px) {
-  .max-w-7xl {
-    max-width: 1280px !important;
-  }
 }

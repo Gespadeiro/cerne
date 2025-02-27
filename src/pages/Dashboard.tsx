@@ -312,7 +312,7 @@ const Dashboard = () => {
 
   return (
     <div className="w-full p-6 bg-background min-h-screen">
-      <div className="flex justify-between items-center mb-8 w-full md:max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-8 w-full">
         <h1 className="text-4xl font-bold">Dashboard</h1>
         <div className="flex gap-4">
           <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
@@ -376,7 +376,7 @@ const Dashboard = () => {
           </Dialog>
         </div>
       </div>
-      <div className="mt-6 w-full md:max-w-7xl mx-auto">
+      <div className="mt-6 w-full">
         {objectives.length === 0 ? (
           <div className="text-center py-20 bg-muted/20 rounded-lg">
             <h2 className="text-2xl font-semibold mb-2">No objectives yet</h2>
