@@ -13,6 +13,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { User } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const profileSchema = z.object({
   username: z.string().min(3, {
@@ -24,7 +25,7 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -101,7 +102,11 @@ const Profile = () => {
         description: "Your profile has been updated successfully.",
       });
 
-      fetchUserProfile();
+      // Refresh the profile in the AuthContext
+      await refreshProfile();
+      
+      // Fetch updated profile
+      await fetchUserProfile();
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast({
@@ -116,8 +121,24 @@ const Profile = () => {
 
   if (isLoading && !profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-xl">Loading profile...</div>
+      <div className="container mx-auto p-6 min-h-screen">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-4xl font-bold mb-8">Profile Settings</h1>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-8 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+            <CardFooter>
+              <Skeleton className="h-10 w-1/4" />
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     );
   }
