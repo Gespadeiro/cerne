@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Initiative } from "@/lib/types";
 import {
   Table,
@@ -28,6 +27,7 @@ type InitiativeCheckIn = {
 const InitiativeDetails = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [initiative, setInitiative] = useState<Initiative | null>(null);
   const [checkIns, setCheckIns] = useState<InitiativeCheckIn[]>([]);
@@ -109,6 +109,33 @@ const InitiativeDetails = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!initiative) return;
+    
+    try {
+      const { error } = await supabase
+        .from('initiatives')
+        .update({ deleted: true })
+        .eq('id', initiative.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Initiative archived",
+        description: "The initiative has been moved to the archive.",
+      });
+
+      navigate('/archive');
+    } catch (error: any) {
+      console.error("Error archiving initiative:", error);
+      toast({
+        title: "Error",
+        description: "Failed to archive initiative",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 min-h-screen flex items-center justify-center">
@@ -130,6 +157,13 @@ const InitiativeDetails = () => {
       <div className="flex flex-col items-center mb-12 text-center">
         <h1 className="text-4xl font-bold gradient-text mb-4">{initiative.name}</h1>
         <p className="text-muted-foreground max-w-2xl">{initiative.description}</p>
+        <Button
+          variant="destructive"
+          className="mt-4"
+          onClick={handleDelete}
+        >
+          Archive Initiative
+        </Button>
       </div>
 
       {checkIns.length > 0 ? (

@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { KeyResult } from "@/lib/types";
 import {
   Table,
@@ -14,6 +13,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 // Type for key result check-in data
 type KeyResultCheckIn = {
@@ -27,6 +27,7 @@ type KeyResultCheckIn = {
 const KeyResultDetails = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [keyResult, setKeyResult] = useState<KeyResult | null>(null);
   const [checkIns, setCheckIns] = useState<KeyResultCheckIn[]>([]);
@@ -108,6 +109,33 @@ const KeyResultDetails = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!keyResult) return;
+    
+    try {
+      const { error } = await supabase
+        .from('key_results')
+        .update({ deleted: true })
+        .eq('id', keyResult.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Key Result archived",
+        description: "The key result has been moved to the archive.",
+      });
+
+      navigate('/archive');
+    } catch (error: any) {
+      console.error("Error archiving key result:", error);
+      toast({
+        title: "Error",
+        description: "Failed to archive key result",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 min-h-screen flex items-center justify-center">
@@ -127,8 +155,15 @@ const KeyResultDetails = () => {
   return (
     <div className="container mx-auto p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
       <div className="flex flex-col items-center mb-12 text-center">
-        <h1 className="text-4xl font-bold gradient-text mb-4">{keyResult.name}</h1>
-        <p className="text-muted-foreground max-w-2xl">{keyResult.description}</p>
+        <h1 className="text-4xl font-bold gradient-text mb-4">{keyResult?.name}</h1>
+        <p className="text-muted-foreground max-w-2xl">{keyResult?.description}</p>
+        <Button
+          variant="destructive"
+          className="mt-4"
+          onClick={handleDelete}
+        >
+          Archive Key Result
+        </Button>
       </div>
 
       {checkIns.length > 0 ? (
