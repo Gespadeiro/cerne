@@ -157,11 +157,28 @@ const Archive = () => {
 
   const handleRestore = async (type: 'objective' | 'initiative' | 'keyResult', id: string) => {
     try {
-      const tableName = type === 'keyResult' ? 'key_results' : `${type}s`;
-      const { error } = await supabase
-        .from(tableName)
-        .update({ deleted: false })
-        .eq('id', id);
+      let error;
+
+      switch (type) {
+        case 'objective':
+          ({ error } = await supabase
+            .from('objectives')
+            .update({ deleted: false })
+            .eq('id', id));
+          break;
+        case 'initiative':
+          ({ error } = await supabase
+            .from('initiatives')
+            .update({ deleted: false })
+            .eq('id', id));
+          break;
+        case 'keyResult':
+          ({ error } = await supabase
+            .from('key_results')
+            .update({ deleted: false })
+            .eq('id', id));
+          break;
+      }
 
       if (error) throw error;
 
@@ -182,11 +199,28 @@ const Archive = () => {
 
   const handleDelete = async (type: 'objective' | 'initiative' | 'keyResult', id: string) => {
     try {
-      const tableName = type === 'keyResult' ? 'key_results' : `${type}s`;
-      const { error } = await supabase
-        .from(tableName)
-        .delete()
-        .eq('id', id);
+      let error;
+
+      switch (type) {
+        case 'objective':
+          ({ error } = await supabase
+            .from('objectives')
+            .delete()
+            .eq('id', id));
+          break;
+        case 'initiative':
+          ({ error } = await supabase
+            .from('initiatives')
+            .delete()
+            .eq('id', id));
+          break;
+        case 'keyResult':
+          ({ error } = await supabase
+            .from('key_results')
+            .delete()
+            .eq('id', id));
+          break;
+      }
 
       if (error) throw error;
 
