@@ -12,14 +12,14 @@ import {
 } from "@/components/ui/sidebar";
 import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 const items = [
   {
     title: "Home",
-    url: "/",
+    url: "/home",
     icon: Home,
   },
   {
@@ -40,15 +40,13 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const { user, userProfile, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   if (!user) {
     return null;
   }
-
-  const displayName = userProfile?.username || user.email || 'Profile';
 
   const handleSignOut = async () => {
     try {
@@ -77,10 +75,10 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link to={item.url}>
+                    <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                    </Link>
+                    </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -92,7 +90,7 @@ export function AppSidebar() {
           <div className="flex flex-col gap-2">
             <Button variant="outline" size="sm" className="justify-start" onClick={() => navigate("/profile")}>
               <User className="mr-2 h-4 w-4" />
-              <span>{displayName}</span>
+              <span>{user.email}</span>
             </Button>
             <Button variant="ghost" size="sm" className="justify-start text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20" onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
