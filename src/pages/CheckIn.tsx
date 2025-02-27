@@ -27,6 +27,13 @@ interface LastCheckInValues {
   [keyResultId: string]: number;
 }
 
+interface LastInitiativeValues {
+  [initiativeId: string]: {
+    status: string;
+    percentage: number;
+  };
+}
+
 const CheckIn = () => {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +43,7 @@ const CheckIn = () => {
   const [initiativeConfidence, setInitiativeConfidence] = useState<Record<string, string>>({});
   const [initiativePercentage, setInitiativePercentage] = useState<Record<string, string>>({});
   const [lastKeyResultValues, setLastKeyResultValues] = useState<LastCheckInValues>({});
+  const [lastInitiativeValues, setLastInitiativeValues] = useState<LastInitiativeValues>({});
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -125,6 +133,11 @@ const CheckIn = () => {
       if (keyResultsData.length > 0) {
         fetchLatestKeyResultValues(keyResultsData.map(kr => kr.id));
       }
+
+      // Fetch the latest check-in values for all initiatives
+      if (initiativesData.length > 0) {
+        fetchLatestInitiativeValues(initiativesData.map(init => init.id));
+      }
     } catch (error: any) {
       toast({
         title: "Error fetching data",
@@ -161,6 +174,36 @@ const CheckIn = () => {
       setLastKeyResultValues(latestValues);
     } catch (error: any) {
       console.error("Error fetching latest key result values:", error);
+    }
+  };
+
+  const fetchLatestInitiativeValues = async (initiativeIds: string[]) => {
+    try {
+      // For each initiative, get the latest check-in
+      const { data, error } = await supabase
+        .from('initiative_check_ins')
+        .select('*')
+        .in('initiative_id', initiativeIds)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Create a map of initiative ID to its latest value
+      const latestValues: LastInitiativeValues = {};
+      
+      // Group by initiative_id and take the most recent
+      data?.forEach(checkIn => {
+        if (!latestValues[checkIn.initiative_id]) {
+          latestValues[checkIn.initiative_id] = {
+            status: checkIn.progress_status,
+            percentage: Number(checkIn.progress_percentage || 0)
+          };
+        }
+      });
+
+      setLastInitiativeValues(latestValues);
+    } catch (error: any) {
+      console.error("Error fetching latest initiative values:", error);
     }
   };
 
@@ -224,6 +267,16 @@ const CheckIn = () => {
           .insert(initiativeCheckIns);
 
         if (initCheckInError) throw initCheckInError;
+
+        // Update the lastInitiativeValues with the new check-in values
+        const newLastValues = { ...lastInitiativeValues };
+        initiativeCheckIns.forEach(checkIn => {
+          newLastValues[checkIn.initiative_id] = {
+            status: checkIn.progress_status,
+            percentage: Number(checkIn.progress_percentage || 0)
+          };
+        });
+        setLastInitiativeValues(newLastValues);
       }
 
       toast({
@@ -363,10 +416,11 @@ const CheckIn = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="font-semibold w-[35%]">Initiative</TableHead>
-                              <TableHead className="font-semibold w-[20%]">Progress</TableHead>
-                              <TableHead className="font-semibold w-[15%]">Percentage</TableHead>
-                              <TableHead className="font-semibold w-[30%]">Confidence Level</TableHead>
+                              <TableHead className="font-semibold w-[25%]">Initiative</TableHead>
+                              <TableHead className="font-semibold w-[15%]">Progress</TableHead>
+                              <TableHead className="font-semibold w-[15%]">Current Percentage</TableHead>
+                              <TableHead className="font-semibold w-[15%]">Check-in Percentage</TableHead>
+                              <TableHead className="font-semibold w-[15%]">Confidence Level</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -393,6 +447,11 @@ const CheckIn = () => {
                                         <SelectItem value="blocked">Blocked</SelectItem>
                                       </SelectContent>
                                     </Select>
+                                  </TableCell>
+                                  <TableCell>
+                                    {lastInitiativeValues[initiative.id] ? 
+                                      `${lastInitiativeValues[initiative.id].percentage}%` : 
+                                      "0%"}
                                   </TableCell>
                                   <TableCell>
                                     <Input 

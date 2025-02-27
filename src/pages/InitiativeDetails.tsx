@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Initiative } from "@/lib/types";
 import {
@@ -11,37 +11,119 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
-// Temporary type for check-in data
+// Type for initiative check-in data
 type InitiativeCheckIn = {
+  id: string;
   date: string;
   status: string;
+  percentage: number;
   confidence: number;
   notes?: string;
 }
 
 const InitiativeDetails = () => {
   const { id } = useParams();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [initiative, setInitiative] = useState<Initiative | null>(null);
+  const [checkIns, setCheckIns] = useState<InitiativeCheckIn[]>([]);
   
-  // Temporary mock data - replace with actual data fetching
-  const [initiative] = useState<Initiative>({
-    id: "1",
-    name: "Sample Initiative",
-    description: "This is a sample initiative description",
-    objectiveId: "obj1",
-    startDate: new Date(),
-    endDate: new Date(),
-    deleted: false,
-    completed: false
-  });
+  useEffect(() => {
+    if (id) {
+      fetchInitiativeDetails(id);
+    }
+  }, [id]);
 
-  const [checkIns] = useState<InitiativeCheckIn[]>([
-    { date: "2024-01-01", status: "Not Started", confidence: 5, notes: "Initial planning phase" },
-    { date: "2024-01-08", status: "In Progress", confidence: 7, notes: "Started implementation" },
-    { date: "2024-01-15", status: "In Progress", confidence: 8, notes: "Good progress" },
-    { date: "2024-01-22", status: "In Progress", confidence: 6, notes: "Some challenges" },
-    { date: "2024-01-29", status: "Completed", confidence: 9, notes: "Successfully completed" },
-  ]);
+  const fetchInitiativeDetails = async (initiativeId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch initiative details
+      const { data: initiativeData, error: initiativeError } = await supabase
+        .from('initiatives')
+        .select('*')
+        .eq('id', initiativeId)
+        .eq('deleted', false)
+        .single();
+
+      if (initiativeError) throw initiativeError;
+
+      if (!initiativeData) {
+        toast({
+          title: "Initiative not found",
+          description: "The initiative you're looking for doesn't exist or has been deleted.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Fetch check-ins for this initiative
+      const { data: checkInsData, error: checkInsError } = await supabase
+        .from('initiative_check_ins')
+        .select(`
+          *,
+          check_ins(date)
+        `)
+        .eq('initiative_id', initiativeId)
+        .order('created_at', { ascending: true });
+
+      if (checkInsError) throw checkInsError;
+
+      // Map to our frontend types
+      const mappedInitiative: Initiative = {
+        id: initiativeData.id,
+        name: initiativeData.name,
+        description: initiativeData.description,
+        objectiveId: initiativeData.objective_id,
+        startDate: new Date(initiativeData.start_date),
+        endDate: new Date(initiativeData.end_date),
+        deleted: initiativeData.deleted,
+        completed: initiativeData.completed
+      };
+
+      // Map check-ins to our frontend type
+      const mappedCheckIns: InitiativeCheckIn[] = checkInsData.map(checkIn => ({
+        id: checkIn.id,
+        date: format(new Date((checkIn.check_ins as any).date), 'yyyy-MM-dd'),
+        status: checkIn.progress_status,
+        percentage: Number(checkIn.progress_percentage || 0),
+        confidence: checkIn.confidence_level,
+        notes: checkIn.notes || undefined
+      }));
+
+      setInitiative(mappedInitiative);
+      setCheckIns(mappedCheckIns);
+    } catch (error: any) {
+      console.error("Error fetching initiative details:", error);
+      toast({
+        title: "Error fetching data",
+        description: error.message || "An error occurred while fetching the initiative details.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6 min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading initiative details...</div>
+      </div>
+    );
+  }
+
+  if (!initiative) {
+    return (
+      <div className="container mx-auto p-6 min-h-screen flex items-center justify-center">
+        <div className="text-xl">Initiative not found</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
@@ -50,52 +132,88 @@ const InitiativeDetails = () => {
         <p className="text-muted-foreground max-w-2xl">{initiative.description}</p>
       </div>
 
-      <div className="glass-card p-6 mb-8">
-        <h2 className="text-2xl font-semibold mb-6">Confidence Evolution</h2>
-        <div className="h-[400px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={checkIns}
-              margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis domain={[0, 10]} />
-              <Tooltip />
-              <Line type="monotone" dataKey="confidence" stroke="#8b5cf6" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      {checkIns.length > 0 ? (
+        <>
+          <div className="glass-card p-6 mb-8">
+            <h2 className="text-2xl font-semibold mb-6">Confidence Evolution</h2>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={checkIns}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis domain={[0, 10]} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="confidence" stroke="#8b5cf6" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-      <div className="glass-card p-6">
-        <h2 className="text-2xl font-semibold mb-6">Check-in History</h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Confidence</TableHead>
-              <TableHead>Notes</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {checkIns.map((checkIn, index) => (
-              <TableRow key={index}>
-                <TableCell>{checkIn.date}</TableCell>
-                <TableCell>{checkIn.status}</TableCell>
-                <TableCell>{checkIn.confidence}</TableCell>
-                <TableCell>{checkIn.notes}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+          <div className="glass-card p-6 mb-8">
+            <h2 className="text-2xl font-semibold mb-6">Progress Percentage</h2>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={checkIns}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="percentage" stroke="#4ade80" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="glass-card p-6">
+            <h2 className="text-2xl font-semibold mb-6">Check-in History</h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Percentage</TableHead>
+                  <TableHead>Confidence</TableHead>
+                  <TableHead>Notes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {checkIns.map((checkIn) => (
+                  <TableRow key={checkIn.id}>
+                    <TableCell>{checkIn.date}</TableCell>
+                    <TableCell>{checkIn.status}</TableCell>
+                    <TableCell>{checkIn.percentage}%</TableCell>
+                    <TableCell>{checkIn.confidence}</TableCell>
+                    <TableCell>{checkIn.notes || '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      ) : (
+        <div className="glass-card p-6 text-center">
+          <h2 className="text-2xl font-semibold mb-4">No Check-ins Yet</h2>
+          <p className="text-muted-foreground">
+            This initiative doesn't have any check-ins yet. Go to the Check-in page to add progress updates.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
