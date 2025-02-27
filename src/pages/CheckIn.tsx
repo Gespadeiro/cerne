@@ -210,7 +210,7 @@ const CheckIn = () => {
 
   return (
     <div className="w-full p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
-      <div className="w-full max-w-7xl mx-auto">
+      <div className="w-full px-4 mx-auto">
         <div className="flex flex-col items-center mb-12 text-center">
           <h1 className="text-4xl font-bold gradient-text mb-4">Progress Check-in</h1>
           <p className="text-muted-foreground max-w-2xl">
@@ -236,61 +236,63 @@ const CheckIn = () => {
                 objectives.map(objective => (
                   <div key={objective.id} className="mb-8 w-full">
                     <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
-                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="font-semibold w-[250px]">Key Result</TableHead>
-                            <TableHead className="font-semibold w-[150px]">Starting Value</TableHead>
-                            <TableHead className="font-semibold w-[150px]">Goal Value</TableHead>
-                            <TableHead className="font-semibold w-[200px]">Current Value</TableHead>
-                            <TableHead className="font-semibold w-[200px]">Confidence Level</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {objective.keyResults
-                            .filter(kr => !kr.deleted)
-                            .map(kr => (
-                              <TableRow key={kr.id}>
-                                <TableCell className="font-medium">{kr.name}</TableCell>
-                                <TableCell>{kr.startingValue}</TableCell>
-                                <TableCell>{kr.goalValue}</TableCell>
-                                <TableCell>
-                                  <Input 
-                                    type="text" 
-                                    placeholder="Enter current value"
-                                    className="w-full bg-background/50"
-                                    value={keyResultValues[kr.id] || ''}
-                                    onChange={(e) => setKeyResultValues({
-                                      ...keyResultValues,
-                                      [kr.id]: e.target.value
-                                    })}
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Select
-                                    value={keyResultConfidence[kr.id]}
-                                    onValueChange={(value) => setKeyResultConfidence({
-                                      ...keyResultConfidence,
-                                      [kr.id]: value
-                                    })}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="1-9" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
-                                        <SelectItem key={value} value={value.toString()}>
-                                          {value}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </TableCell>
-                              </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
+                      <div className="w-full overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="font-semibold w-[250px]">Key Result</TableHead>
+                              <TableHead className="font-semibold w-[150px]">Starting Value</TableHead>
+                              <TableHead className="font-semibold w-[150px]">Goal Value</TableHead>
+                              <TableHead className="font-semibold w-[200px]">Current Value</TableHead>
+                              <TableHead className="font-semibold w-[200px]">Confidence Level</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {objective.keyResults
+                              .filter(kr => !kr.deleted)
+                              .map(kr => (
+                                <TableRow key={kr.id}>
+                                  <TableCell className="font-medium">{kr.name}</TableCell>
+                                  <TableCell>{kr.startingValue}</TableCell>
+                                  <TableCell>{kr.goalValue}</TableCell>
+                                  <TableCell>
+                                    <Input 
+                                      type="text" 
+                                      placeholder="Enter current value"
+                                      className="w-full bg-background/50"
+                                      value={keyResultValues[kr.id] || ''}
+                                      onChange={(e) => setKeyResultValues({
+                                        ...keyResultValues,
+                                        [kr.id]: e.target.value
+                                      })}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={keyResultConfidence[kr.id]}
+                                      onValueChange={(value) => setKeyResultConfidence({
+                                        ...keyResultConfidence,
+                                        [kr.id]: value
+                                      })}
+                                    >
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="1-9" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
+                                          <SelectItem key={value} value={value.toString()}>
+                                            {value}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
                   </div>
               ))
@@ -307,64 +309,66 @@ const CheckIn = () => {
                 objectives.map(objective => (
                   <div key={objective.id} className="mb-8 w-full">
                     <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
-                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="font-semibold w-[40%]">Initiative</TableHead>
-                            <TableHead className="font-semibold w-[30%]">Progress</TableHead>
-                            <TableHead className="font-semibold w-[30%]">Confidence Level</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {objective.initiatives
-                            .filter(initiative => !initiative.deleted)
-                            .map(initiative => (
-                              <TableRow key={initiative.id}>
-                                <TableCell className="font-medium">{initiative.name}</TableCell>
-                                <TableCell>
-                                  <Select
-                                    value={initiativeStatus[initiative.id]}
-                                    onValueChange={(value) => setInitiativeStatus({
-                                      ...initiativeStatus,
-                                      [initiative.id]: value
-                                    })}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="Select progress" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="not-started">Not Started</SelectItem>
-                                      <SelectItem value="in-progress">In Progress</SelectItem>
-                                      <SelectItem value="completed">Completed</SelectItem>
-                                      <SelectItem value="blocked">Blocked</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </TableCell>
-                                <TableCell>
-                                  <Select
-                                    value={initiativeConfidence[initiative.id]}
-                                    onValueChange={(value) => setInitiativeConfidence({
-                                      ...initiativeConfidence,
-                                      [initiative.id]: value
-                                    })}
-                                  >
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="1-9" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
-                                        <SelectItem key={value} value={value.toString()}>
-                                          {value}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </TableCell>
-                              </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
+                      <div className="w-full overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="font-semibold w-[40%]">Initiative</TableHead>
+                              <TableHead className="font-semibold w-[30%]">Progress</TableHead>
+                              <TableHead className="font-semibold w-[30%]">Confidence Level</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {objective.initiatives
+                              .filter(initiative => !initiative.deleted)
+                              .map(initiative => (
+                                <TableRow key={initiative.id}>
+                                  <TableCell className="font-medium">{initiative.name}</TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={initiativeStatus[initiative.id]}
+                                      onValueChange={(value) => setInitiativeStatus({
+                                        ...initiativeStatus,
+                                        [initiative.id]: value
+                                      })}
+                                    >
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select progress" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="not-started">Not Started</SelectItem>
+                                        <SelectItem value="in-progress">In Progress</SelectItem>
+                                        <SelectItem value="completed">Completed</SelectItem>
+                                        <SelectItem value="blocked">Blocked</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={initiativeConfidence[initiative.id]}
+                                      onValueChange={(value) => setInitiativeConfidence({
+                                        ...initiativeConfidence,
+                                        [initiative.id]: value
+                                      })}
+                                    >
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="1-9" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
+                                          <SelectItem key={value} value={value.toString()}>
+                                            {value}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
                   </div>
               ))
