@@ -1,5 +1,4 @@
 
-import { ObjectivesTable } from "@/components/objectives-table";
 import { Objective, Initiative, KeyResult } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,10 +30,40 @@ const Archive = () => {
     try {
       setIsLoading(true);
       
-      // Fetch archived objectives
+      // Fetch archived objectives with their related data
       const { data: objectivesData, error: objectivesError } = await supabase
         .from('objectives')
-        .select('*, initiatives (*), key_results (*)')
+        .select(`
+          id,
+          name,
+          description,
+          start_date,
+          end_date,
+          deleted,
+          check_in_frequency,
+          user_id,
+          initiatives (
+            id,
+            name,
+            description,
+            objective_id,
+            start_date,
+            end_date,
+            deleted,
+            completed
+          ),
+          key_results (
+            id,
+            name,
+            description,
+            objective_id,
+            start_date,
+            end_date,
+            starting_value,
+            goal_value,
+            deleted
+          )
+        `)
         .eq('deleted', true);
 
       if (objectivesError) throw objectivesError;
@@ -64,8 +93,27 @@ const Archive = () => {
         endDate: new Date(obj.end_date),
         deleted: obj.deleted,
         checkInFrequency: obj.check_in_frequency,
-        initiatives: obj.initiatives,
-        keyResults: obj.key_results,
+        initiatives: obj.initiatives.map((init: any) => ({
+          id: init.id,
+          name: init.name,
+          description: init.description,
+          objectiveId: init.objective_id,
+          startDate: new Date(init.start_date),
+          endDate: new Date(init.end_date),
+          deleted: init.deleted,
+          completed: init.completed
+        })),
+        keyResults: obj.key_results.map((kr: any) => ({
+          id: kr.id,
+          name: kr.name,
+          description: kr.description,
+          objectiveId: kr.objective_id,
+          startDate: new Date(kr.start_date),
+          endDate: new Date(kr.end_date),
+          startingValue: Number(kr.starting_value),
+          goalValue: Number(kr.goal_value),
+          deleted: kr.deleted
+        })),
         userId: obj.user_id
       }));
 
@@ -109,8 +157,9 @@ const Archive = () => {
 
   const handleRestore = async (type: 'objective' | 'initiative' | 'keyResult', id: string) => {
     try {
+      const tableName = type === 'keyResult' ? 'key_results' : `${type}s`;
       const { error } = await supabase
-        .from(type === 'keyResult' ? 'key_results' : type + 's')
+        .from(tableName)
         .update({ deleted: false })
         .eq('id', id);
 
@@ -133,8 +182,9 @@ const Archive = () => {
 
   const handleDelete = async (type: 'objective' | 'initiative' | 'keyResult', id: string) => {
     try {
+      const tableName = type === 'keyResult' ? 'key_results' : `${type}s`;
       const { error } = await supabase
-        .from(type === 'keyResult' ? 'key_results' : type + 's')
+        .from(tableName)
         .delete()
         .eq('id', id);
 
@@ -294,4 +344,3 @@ const Archive = () => {
 };
 
 export default Archive;
-
