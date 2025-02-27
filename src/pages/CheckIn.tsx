@@ -34,6 +34,7 @@ const CheckIn = () => {
   const [keyResultConfidence, setKeyResultConfidence] = useState<Record<string, string>>({});
   const [initiativeStatus, setInitiativeStatus] = useState<Record<string, string>>({});
   const [initiativeConfidence, setInitiativeConfidence] = useState<Record<string, string>>({});
+  const [initiativePercentage, setInitiativePercentage] = useState<Record<string, string>>({});
   const [lastKeyResultValues, setLastKeyResultValues] = useState<LastCheckInValues>({});
   const { toast } = useToast();
   const { user } = useAuth();
@@ -212,6 +213,7 @@ const CheckIn = () => {
           check_in_id: checkInData.id,
           initiative_id: initiativeId,
           progress_status: status,
+          progress_percentage: initiativePercentage[initiativeId] ? Number(initiativePercentage[initiativeId]) : 0,
           confidence_level: Number(initiativeConfidence[initiativeId] || 5),
           notes: ''
         }));
@@ -233,6 +235,7 @@ const CheckIn = () => {
       setKeyResultValues({});
       setKeyResultConfidence({});
       setInitiativeStatus({});
+      setInitiativePercentage({});
       setInitiativeConfidence({});
     } catch (error: any) {
       toast({
@@ -360,8 +363,9 @@ const CheckIn = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="font-semibold w-[40%]">Initiative</TableHead>
-                              <TableHead className="font-semibold w-[30%]">Progress</TableHead>
+                              <TableHead className="font-semibold w-[35%]">Initiative</TableHead>
+                              <TableHead className="font-semibold w-[20%]">Progress</TableHead>
+                              <TableHead className="font-semibold w-[15%]">Percentage</TableHead>
                               <TableHead className="font-semibold w-[30%]">Confidence Level</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -389,6 +393,23 @@ const CheckIn = () => {
                                         <SelectItem value="blocked">Blocked</SelectItem>
                                       </SelectContent>
                                     </Select>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input 
+                                      type="number" 
+                                      placeholder="0-100"
+                                      className="w-full bg-background/50"
+                                      min="0"
+                                      max="100"
+                                      value={initiativePercentage[initiative.id] || ''}
+                                      onChange={(e) => {
+                                        const value = Math.min(100, Math.max(0, Number(e.target.value) || 0));
+                                        setInitiativePercentage({
+                                          ...initiativePercentage,
+                                          [initiative.id]: value.toString()
+                                        });
+                                      }}
+                                    />
                                   </TableCell>
                                   <TableCell>
                                     <Select
