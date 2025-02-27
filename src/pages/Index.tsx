@@ -27,7 +27,7 @@ const Index = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-4xl font-bold mb-8">Welcome to Imprv</h1>
+      <h1 className="text-4xl font-bold mb-8">Welcome to Cerne</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card 
           className="cursor-pointer" 
