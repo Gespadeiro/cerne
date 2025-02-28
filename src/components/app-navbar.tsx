@@ -6,7 +6,6 @@ import {
   Home, 
   LayoutDashboard, 
   Archive, 
-  Trash2, 
   ClipboardCheck,
   LogOut
 } from "lucide-react";
@@ -23,9 +22,8 @@ export function AppNavbar() {
   const navItems = [
     { path: "/home", label: "Home", icon: Home },
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/archive", label: "Archive", icon: Archive },
-    { path: "/garbage", label: "Garbage", icon: Trash2 },
-    { path: "/check-in", label: "Check In", icon: ClipboardCheck }
+    { path: "/check-in", label: "Check In", icon: ClipboardCheck },
+    { path: "/archive", label: "Archive", icon: Archive }
   ];
 
   if (!user) return null;
