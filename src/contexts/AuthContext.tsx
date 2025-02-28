@@ -20,11 +20,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Get session on load
     const getSession = async () => {
-      setIsLoading(true);
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error fetching session:", error);
+          return;
+        }
+        
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+      } catch (err) {
+        console.error("Unexpected error during session fetch:", err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     getSession();
@@ -32,6 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
+        console.log("Auth state changed:", _event);
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setIsLoading(false);
@@ -44,7 +56,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error signing out:", error);
+      }
+    } catch (err) {
+      console.error("Unexpected error during sign out:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const value = {
