@@ -44,12 +44,12 @@ export function InitiativeRow({
         {initiative.progress !== undefined ? `${initiative.progress}%` : "-"}
       </td>
       <td className="px-6 py-4 text-sm text-muted-foreground">
-        {initiative.confidenceLevel !== undefined ? `${initiative.confidenceLevel}/10` : "-"}
-      </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground">
         <Badge variant={initiative.completed ? "success" : "secondary"}>
           {initiative.completed ? "Completed" : "In Progress"}
         </Badge>
+      </td>
+      <td className="px-6 py-4 text-sm text-muted-foreground">
+        {initiative.confidenceLevel !== undefined ? `${initiative.confidenceLevel}/10` : "-"}
       </td>
       <TableActionButtons 
         onEdit={(e) => {
