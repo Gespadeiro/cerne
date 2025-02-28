@@ -7,6 +7,8 @@ import Archive from "@/pages/Archive";
 import CheckIn from "@/pages/CheckIn";
 import InitiativeDetails from "@/pages/InitiativeDetails";
 import KeyResultDetails from "@/pages/KeyResultDetails";
+import KeyResultEdit from "@/pages/KeyResultEdit";
+import InitiativeEdit from "@/pages/InitiativeEdit";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import { AppNavbar } from "./components/app-navbar";
@@ -65,10 +67,26 @@ function App() {
                   } 
                 />
                 <Route 
+                  path="/initiatives/:id/edit" 
+                  element={
+                    <ProtectedRoute>
+                      <InitiativeEdit />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
                   path="/key-results/:id" 
                   element={
                     <ProtectedRoute>
                       <KeyResultDetails />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/key-results/:id/edit" 
+                  element={
+                    <ProtectedRoute>
+                      <KeyResultEdit />
                     </ProtectedRoute>
                   } 
                 />

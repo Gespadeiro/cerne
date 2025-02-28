@@ -53,6 +53,11 @@ export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTabl
     return Math.round(percentage) + "%";
   };
 
+  // Sort objectives by end date (closest first)
+  const sortedObjectives = [...objectives].sort((a, b) => 
+    a.endDate.getTime() - b.endDate.getTime()
+  );
+
   return (
     <div className="overflow-x-auto rounded-md border">
       <table className="min-w-full divide-y divide-border">
@@ -82,7 +87,7 @@ export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTabl
           </tr>
         </thead>
         <tbody className="bg-background divide-y divide-border">
-          {objectives.map((objective) => (
+          {sortedObjectives.map((objective) => (
             <React.Fragment key={objective.id}>
               {/* Objective Row */}
               <tr className="bg-muted/30 cursor-pointer">
@@ -125,101 +130,146 @@ export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTabl
               {/* Key Results Rows */}
               {objective.keyResults
                 .filter(kr => !kr.deleted)
-                .map((keyResult) => (
+                .map((keyResult) => {
+                  // Get initiatives for this key result
+                  const keyResultInitiatives = objective.initiatives
+                    .filter(init => !init.deleted && init.keyResultId === keyResult.id);
+                  
+                  return (
+                    <React.Fragment key={keyResult.id}>
+                      {/* Key Result Row */}
+                      <tr 
+                        className="hover:bg-muted/50 cursor-pointer"
+                        onClick={() => navigateToKeyResult(keyResult.id)}
+                      >
+                        <td className="px-6 py-4 text-sm pl-10">
+                          {keyResult.name}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {format(keyResult.startDate, "MMM d, yyyy")} - {format(keyResult.endDate, "MMM d, yyyy")}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {keyResult.startingValue}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {keyResult.goalValue}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {keyResult.currentValue !== undefined ? keyResult.currentValue : "-"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {calculateProgress(keyResult)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-right space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => editKeyResult(keyResult.id, e)}
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => deleteKeyResult(keyResult.id, e)}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                      
+                      {/* Initiatives for this specific Key Result */}
+                      {keyResultInitiatives.map((initiative) => (
+                        <tr 
+                          key={initiative.id}
+                          className="hover:bg-muted/50 cursor-pointer"
+                          onClick={() => navigateToInitiative(initiative.id)}
+                        >
+                          <td className="px-6 py-4 text-sm pl-14">
+                            {initiative.name}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                            {format(initiative.startDate, "MMM d, yyyy")} - {format(initiative.endDate, "MMM d, yyyy")}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                            -
+                          </td>
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                            -
+                          </td>
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                            -
+                          </td>
+                          <td className="px-6 py-4 text-sm text-muted-foreground">
+                            {initiative.progress !== undefined ? `${initiative.progress}%` : "-"}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-right space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => editInitiative(initiative.id, e)}
+                            >
+                              <PencilIcon className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => deleteInitiative(initiative.id, e)}
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                })}
+              
+              {/* Initiatives without a key result (directly under objective) */}
+              {objective.initiatives
+                .filter(init => !init.deleted && !init.keyResultId)
+                .map((initiative) => (
                   <tr 
-                    key={keyResult.id}
+                    key={initiative.id}
                     className="hover:bg-muted/50 cursor-pointer"
-                    onClick={() => navigateToKeyResult(keyResult.id)}
+                    onClick={() => navigateToInitiative(initiative.id)}
                   >
                     <td className="px-6 py-4 text-sm pl-10">
-                      {keyResult.name}
+                      {initiative.name}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {format(keyResult.startDate, "MMM d, yyyy")} - {format(keyResult.endDate, "MMM d, yyyy")}
+                      {format(initiative.startDate, "MMM d, yyyy")} - {format(initiative.endDate, "MMM d, yyyy")}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {keyResult.startingValue}
+                      -
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {keyResult.goalValue}
+                      -
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {keyResult.currentValue !== undefined ? keyResult.currentValue : "-"}
+                      -
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {calculateProgress(keyResult)}
+                      {initiative.progress !== undefined ? `${initiative.progress}%` : "-"}
                     </td>
                     <td className="px-6 py-4 text-sm text-right space-x-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={(e) => editKeyResult(keyResult.id, e)}
+                        onClick={(e) => editInitiative(initiative.id, e)}
                       >
                         <PencilIcon className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={(e) => deleteKeyResult(keyResult.id, e)}
+                        onClick={(e) => deleteInitiative(initiative.id, e)}
                       >
                         <TrashIcon className="h-4 w-4" />
                       </Button>
                     </td>
                   </tr>
                 ))}
-              
-              {/* Initiatives Rows */}
-              {objective.initiatives
-                .filter(init => !init.deleted)
-                .map((initiative) => {
-                  // Find the key result this initiative belongs to
-                  const parentKeyResult = initiative.keyResultId ? 
-                    objective.keyResults.find(kr => kr.id === initiative.keyResultId) : 
-                    null;
-                  
-                  return (
-                    <tr 
-                      key={initiative.id}
-                      className={`hover:bg-muted/50 cursor-pointer ${parentKeyResult ? 'pl-4' : ''}`}
-                      onClick={() => navigateToInitiative(initiative.id)}
-                    >
-                      <td className={`px-6 py-4 text-sm ${parentKeyResult ? 'pl-14' : 'pl-10'}`}>
-                        {initiative.name}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {format(initiative.startDate, "MMM d, yyyy")} - {format(initiative.endDate, "MMM d, yyyy")}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        -
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        -
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        -
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {initiative.progress !== undefined ? `${initiative.progress}%` : "-"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-right space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => editInitiative(initiative.id, e)}
-                        >
-                          <PencilIcon className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => deleteInitiative(initiative.id, e)}
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
             </React.Fragment>
           ))}
         </tbody>
