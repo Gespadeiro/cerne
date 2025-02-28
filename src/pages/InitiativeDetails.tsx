@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Initiative } from "@/lib/types";
+import { Initiative, Objective } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -15,6 +15,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { InitiativeForm } from "@/components/initiative-form";
 
 // Type for initiative check-in data
 type InitiativeCheckIn = {
@@ -33,12 +35,43 @@ const InitiativeDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [initiative, setInitiative] = useState<Initiative | null>(null);
   const [checkIns, setCheckIns] = useState<InitiativeCheckIn[]>([]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [objectives, setObjectives] = useState<Objective[]>([]);
   
   useEffect(() => {
     if (id) {
       fetchInitiativeDetails(id);
+      fetchObjectives();
     }
   }, [id]);
+
+  const fetchObjectives = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('objectives')
+        .select('*')
+        .eq('deleted', false);
+
+      if (error) throw error;
+
+      const mappedObjectives: Objective[] = data.map(obj => ({
+        id: obj.id,
+        name: obj.name,
+        description: obj.description || "",
+        startDate: new Date(obj.start_date),
+        endDate: new Date(obj.end_date),
+        checkInFrequency: obj.check_in_frequency,
+        deleted: obj.deleted,
+        initiatives: [],
+        keyResults: [],
+        userId: obj.user_id
+      }));
+
+      setObjectives(mappedObjectives);
+    } catch (error: any) {
+      console.error("Error fetching objectives:", error);
+    }
+  };
 
   const fetchInitiativeDetails = async (initiativeId: string) => {
     try {
@@ -138,6 +171,49 @@ const InitiativeDetails = () => {
     }
   };
 
+  const handleEdit = async (data: any) => {
+    if (!initiative) return;
+
+    try {
+      const { error } = await supabase
+        .from('initiatives')
+        .update({
+          name: data.name,
+          description: data.description,
+          objective_id: data.objectiveId,
+          start_date: new Date(data.startDate).toISOString(),
+          end_date: new Date(data.endDate).toISOString(),
+        })
+        .eq('id', initiative.id);
+
+      if (error) throw error;
+
+      // Update the local state
+      setInitiative({
+        ...initiative,
+        name: data.name,
+        description: data.description,
+        objectiveId: data.objectiveId,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+      });
+
+      setIsEditDialogOpen(false);
+      
+      toast({
+        title: "Initiative updated",
+        description: "Your initiative has been updated successfully",
+      });
+    } catch (error: any) {
+      console.error("Error updating initiative:", error);
+      toast({
+        title: "Error updating initiative",
+        description: error.message || "An error occurred while updating the initiative.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="w-full p-6 min-h-screen flex items-center justify-center">
@@ -156,16 +232,36 @@ const InitiativeDetails = () => {
 
   return (
     <div className="w-full p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
-      <div className="flex flex-col items-center mb-12 text-center">
-        <h1 className="text-4xl font-bold gradient-text mb-4">{initiative.name}</h1>
-        <p className="text-muted-foreground max-w-2xl">{initiative.description}</p>
-        <Button
-          variant="destructive"
-          className="mt-4"
-          onClick={handleDelete}
-        >
-          Archive Initiative
-        </Button>
+      <div className="glass-card p-6 mb-8">
+        <div className="flex flex-col items-center mb-8 text-center">
+          <h1 className="text-4xl font-bold gradient-text mb-4">{initiative.name}</h1>
+          <p className="text-muted-foreground max-w-2xl mb-4">{initiative.description}</p>
+          <div className="grid grid-cols-2 gap-8 mb-4 w-full max-w-2xl">
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground">Start Date</h3>
+              <p>{format(initiative.startDate, "MMM d, yyyy")}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground">End Date</h3>
+              <p>{format(initiative.endDate, "MMM d, yyyy")}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground">Status</h3>
+              <p>{initiative.completed ? "Completed" : "In Progress"}</p>
+            </div>
+          </div>
+          <div className="flex gap-4 mt-4">
+            <Button onClick={() => setIsEditDialogOpen(true)}>
+              Edit Initiative
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              Archive Initiative
+            </Button>
+          </div>
+        </div>
       </div>
 
       {checkIns.length > 0 ? (
@@ -250,6 +346,20 @@ const InitiativeDetails = () => {
           </p>
         </div>
       )}
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Initiative</DialogTitle>
+          </DialogHeader>
+          <InitiativeForm 
+            objectives={objectives}
+            onSubmit={handleEdit}
+            initiative={initiative}
+            submitButtonText="Update Initiative"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

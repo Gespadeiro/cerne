@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { Objective } from "@/lib/types";
+import { format } from "date-fns";
 
 const objectiveSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -25,12 +27,24 @@ const objectiveSchema = z.object({
 
 type ObjectiveFormProps = {
   onSubmit: (data: z.infer<typeof objectiveSchema>) => void;
+  objective?: Objective;
+  submitButtonText?: string;
 };
 
-export function ObjectiveForm({ onSubmit }: ObjectiveFormProps) {
+export function ObjectiveForm({ onSubmit, objective, submitButtonText = "Create Objective" }: ObjectiveFormProps) {
+  const formatDateForInput = (date: Date) => {
+    return format(date, "yyyy-MM-dd");
+  };
+
   const form = useForm({
     resolver: zodResolver(objectiveSchema),
-    defaultValues: {
+    defaultValues: objective ? {
+      name: objective.name,
+      description: objective.description || "",
+      startDate: formatDateForInput(objective.startDate),
+      endDate: formatDateForInput(objective.endDate),
+      checkInFrequency: objective.checkInFrequency,
+    } : {
       name: "",
       description: "",
       startDate: "",
@@ -62,38 +76,40 @@ export function ObjectiveForm({ onSubmit }: ObjectiveFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea {...field} className="h-20" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="startDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="endDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>End Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>End Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="checkInFrequency"
@@ -114,7 +130,7 @@ export function ObjectiveForm({ onSubmit }: ObjectiveFormProps) {
           )}
         />
         <DialogFooter>
-          <Button type="submit">Create Objective</Button>
+          <Button type="submit">{submitButtonText}</Button>
         </DialogFooter>
       </form>
     </Form>

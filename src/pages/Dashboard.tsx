@@ -22,9 +22,11 @@ import { useAuth } from "@/contexts/AuthContext";
 const Dashboard = () => {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [isObjectiveDialogOpen, setIsObjectiveDialogOpen] = useState(false);
+  const [isEditObjectiveDialogOpen, setIsEditObjectiveDialogOpen] = useState(false);
   const [isInitiativeDialogOpen, setIsInitiativeDialogOpen] = useState(false);
   const [isKeyResultDialogOpen, setIsKeyResultDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedObjective, setSelectedObjective] = useState<Objective | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -148,6 +150,11 @@ const Dashboard = () => {
     }
   };
 
+  const handleEditObjective = (objective: Objective) => {
+    setSelectedObjective(objective);
+    setIsEditObjectiveDialogOpen(true);
+  };
+
   const onObjectiveSubmit = async (data: any) => {
     if (!user) return;
 
@@ -194,6 +201,56 @@ const Dashboard = () => {
         variant: "destructive",
       });
       console.error("Error creating objective:", error);
+    }
+  };
+
+  const onObjectiveEdit = async (data: any) => {
+    if (!selectedObjective) return;
+
+    try {
+      const { error } = await supabase
+        .from('objectives')
+        .update({
+          name: data.name,
+          description: data.description,
+          start_date: new Date(data.startDate).toISOString(),
+          end_date: new Date(data.endDate).toISOString(),
+          check_in_frequency: data.checkInFrequency,
+        })
+        .eq('id', selectedObjective.id);
+
+      if (error) throw error;
+
+      // Update the local state
+      setObjectives(prevObjectives =>
+        prevObjectives.map(obj =>
+          obj.id === selectedObjective.id
+            ? {
+                ...obj,
+                name: data.name,
+                description: data.description,
+                startDate: new Date(data.startDate),
+                endDate: new Date(data.endDate),
+                checkInFrequency: data.checkInFrequency,
+              }
+            : obj
+        )
+      );
+
+      setIsEditObjectiveDialogOpen(false);
+      setSelectedObjective(null);
+      
+      toast({
+        title: "Objective updated",
+        description: "Your objective has been updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating objective",
+        description: error.message || "An error occurred while updating the objective.",
+        variant: "destructive",
+      });
+      console.error("Error updating objective:", error);
     }
   };
 
@@ -391,10 +448,30 @@ const Dashboard = () => {
             <ObjectivesTable
               objectives={objectives}
               onDelete={handleDeleteObjective}
+              onEdit={handleEditObjective}
             />
           </div>
         )}
       </div>
+
+      {/* Edit Objective Dialog */}
+      <Dialog open={isEditObjectiveDialogOpen} onOpenChange={setIsEditObjectiveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Objective</DialogTitle>
+            <DialogDescription>
+              Update your objective details
+            </DialogDescription>
+          </DialogHeader>
+          {selectedObjective && (
+            <ObjectiveForm 
+              onSubmit={onObjectiveEdit} 
+              objective={selectedObjective}
+              submitButtonText="Update Objective"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

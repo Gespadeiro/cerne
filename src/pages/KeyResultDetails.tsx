@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { KeyResult } from "@/lib/types";
+import { KeyResult, Objective } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { KeyResultForm } from "@/components/key-result-form";
 
 // Type for key result check-in data
 type KeyResultCheckIn = {
@@ -32,12 +34,43 @@ const KeyResultDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [keyResult, setKeyResult] = useState<KeyResult | null>(null);
   const [checkIns, setCheckIns] = useState<KeyResultCheckIn[]>([]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [objectives, setObjectives] = useState<Objective[]>([]);
   
   useEffect(() => {
     if (id) {
       fetchKeyResultDetails(id);
+      fetchObjectives();
     }
   }, [id]);
+
+  const fetchObjectives = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('objectives')
+        .select('*')
+        .eq('deleted', false);
+
+      if (error) throw error;
+
+      const mappedObjectives: Objective[] = data.map(obj => ({
+        id: obj.id,
+        name: obj.name,
+        description: obj.description || "",
+        startDate: new Date(obj.start_date),
+        endDate: new Date(obj.end_date),
+        checkInFrequency: obj.check_in_frequency,
+        deleted: obj.deleted,
+        initiatives: [],
+        keyResults: [],
+        userId: obj.user_id
+      }));
+
+      setObjectives(mappedObjectives);
+    } catch (error: any) {
+      console.error("Error fetching objectives:", error);
+    }
+  };
 
   const fetchKeyResultDetails = async (keyResultId: string) => {
     try {
@@ -137,6 +170,53 @@ const KeyResultDetails = () => {
     }
   };
 
+  const handleEdit = async (data: any) => {
+    if (!keyResult) return;
+
+    try {
+      const { error } = await supabase
+        .from('key_results')
+        .update({
+          name: data.name,
+          description: data.description,
+          objective_id: data.objectiveId,
+          start_date: new Date(data.startDate).toISOString(),
+          end_date: new Date(data.endDate).toISOString(),
+          starting_value: data.startingValue,
+          goal_value: data.goalValue,
+        })
+        .eq('id', keyResult.id);
+
+      if (error) throw error;
+
+      // Update the local state
+      setKeyResult({
+        ...keyResult,
+        name: data.name,
+        description: data.description,
+        objectiveId: data.objectiveId,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        startingValue: data.startingValue,
+        goalValue: data.goalValue,
+      });
+
+      setIsEditDialogOpen(false);
+      
+      toast({
+        title: "Key Result updated",
+        description: "Your key result has been updated successfully",
+      });
+    } catch (error: any) {
+      console.error("Error updating key result:", error);
+      toast({
+        title: "Error updating key result",
+        description: error.message || "An error occurred while updating the key result.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="w-full p-6 min-h-screen flex items-center justify-center">
@@ -155,16 +235,40 @@ const KeyResultDetails = () => {
 
   return (
     <div className="w-full p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
-      <div className="flex flex-col items-center mb-12 text-center">
-        <h1 className="text-4xl font-bold gradient-text mb-4">{keyResult?.name}</h1>
-        <p className="text-muted-foreground max-w-2xl">{keyResult?.description}</p>
-        <Button
-          variant="destructive"
-          className="mt-4"
-          onClick={handleDelete}
-        >
-          Archive Key Result
-        </Button>
+      <div className="glass-card p-6 mb-8">
+        <div className="flex flex-col items-center mb-8 text-center">
+          <h1 className="text-4xl font-bold gradient-text mb-4">{keyResult?.name}</h1>
+          <p className="text-muted-foreground max-w-2xl mb-4">{keyResult?.description}</p>
+          <div className="grid grid-cols-2 gap-8 mb-4 w-full max-w-2xl">
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground">Start Date</h3>
+              <p>{format(keyResult.startDate, "MMM d, yyyy")}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground">End Date</h3>
+              <p>{format(keyResult.endDate, "MMM d, yyyy")}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground">Starting Value</h3>
+              <p>{keyResult.startingValue}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-muted-foreground">Goal Value</h3>
+              <p>{keyResult.goalValue}</p>
+            </div>
+          </div>
+          <div className="flex gap-4 mt-4">
+            <Button onClick={() => setIsEditDialogOpen(true)}>
+              Edit Key Result
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+            >
+              Archive Key Result
+            </Button>
+          </div>
+        </div>
       </div>
 
       {checkIns.length > 0 ? (
@@ -252,6 +356,20 @@ const KeyResultDetails = () => {
           </p>
         </div>
       )}
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Key Result</DialogTitle>
+          </DialogHeader>
+          <KeyResultForm 
+            objectives={objectives}
+            onSubmit={handleEdit}
+            keyResult={keyResult}
+            submitButtonText="Update Key Result"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -11,14 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface ObjectivesTableProps {
   objectives: Objective[];
   onDelete: (id: string) => void;
+  onEdit: (objective: Objective) => void;
 }
 
-export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) {
+export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTableProps) {
   const formatDate = (date: Date) => {
     return format(date, "MMM d, yyyy");
   };
@@ -29,12 +30,12 @@ export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) 
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[250px]">Name</TableHead>
+              <TableHead className="w-[350px]">Name</TableHead>
               <TableHead>Start Date</TableHead>
               <TableHead>End Date</TableHead>
               <TableHead className="w-[250px]">Key Results</TableHead>
               <TableHead className="w-[250px]">Initiatives</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="w-[150px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -78,13 +79,22 @@ export function ObjectivesTable({ objectives, onDelete }: ObjectivesTableProps) 
                     </ul>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(objective.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit(objective)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDelete(objective.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

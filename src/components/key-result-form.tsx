@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { Objective } from "@/lib/types";
+import { Objective, KeyResult } from "@/lib/types";
+import { format } from "date-fns";
 
 // Create a type-safe schema with context
 const createKeyResultSchema = (objectives: Objective[]) => z.object({
@@ -50,14 +51,29 @@ const createKeyResultSchema = (objectives: Objective[]) => z.object({
 type KeyResultFormProps = {
   objectives: Objective[];
   onSubmit: (data: z.infer<ReturnType<typeof createKeyResultSchema>>) => void;
+  keyResult?: KeyResult;
+  submitButtonText?: string;
 };
 
-export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
+export function KeyResultForm({ objectives, onSubmit, keyResult, submitButtonText = "Create Key Result" }: KeyResultFormProps) {
   const keyResultSchema = createKeyResultSchema(objectives);
+  
+  // Format dates for the form
+  const formatDateForInput = (date: Date) => {
+    return format(date, "yyyy-MM-dd");
+  };
   
   const form = useForm({
     resolver: zodResolver(keyResultSchema),
-    defaultValues: {
+    defaultValues: keyResult ? {
+      name: keyResult.name,
+      description: keyResult.description,
+      objectiveId: keyResult.objectiveId,
+      startDate: formatDateForInput(keyResult.startDate),
+      endDate: formatDateForInput(keyResult.endDate),
+      startingValue: keyResult.startingValue,
+      goalValue: keyResult.goalValue,
+    } : {
       name: "",
       description: "",
       objectiveId: "",
@@ -189,7 +205,7 @@ export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
           />
         </div>
         <DialogFooter>
-          <Button type="submit">Create Key Result</Button>
+          <Button type="submit">{submitButtonText}</Button>
         </DialogFooter>
       </form>
     </Form>

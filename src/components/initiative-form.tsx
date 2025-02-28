@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { Objective } from "@/lib/types";
+import { Objective, Initiative } from "@/lib/types";
+import { format } from "date-fns";
 
 // Create a type-safe schema with context
 const createInitiativeSchema = (objectives: Objective[]) => z.object({
@@ -48,14 +49,26 @@ const createInitiativeSchema = (objectives: Objective[]) => z.object({
 type InitiativeFormProps = {
   objectives: Objective[];
   onSubmit: (data: z.infer<ReturnType<typeof createInitiativeSchema>>) => void;
+  initiative?: Initiative;
+  submitButtonText?: string;
 };
 
-export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
+export function InitiativeForm({ objectives, onSubmit, initiative, submitButtonText = "Create Initiative" }: InitiativeFormProps) {
   const initiativeSchema = createInitiativeSchema(objectives);
+  
+  const formatDateForInput = (date: Date) => {
+    return format(date, "yyyy-MM-dd");
+  };
   
   const form = useForm({
     resolver: zodResolver(initiativeSchema),
-    defaultValues: {
+    defaultValues: initiative ? {
+      name: initiative.name,
+      description: initiative.description || "",
+      objectiveId: initiative.objectiveId,
+      startDate: formatDateForInput(initiative.startDate),
+      endDate: formatDateForInput(initiative.endDate),
+    } : {
       name: "",
       description: "",
       objectiveId: "",
@@ -87,7 +100,7 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea {...field} className="h-20" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,7 +114,7 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
               <FormLabel>Objective</FormLabel>
               <FormControl>
                 <select
-                  className="w-full border rounded-md p-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="w-full border rounded-md p-2 bg-background text-foreground hover:bg-muted/50"
                   {...field}
                 >
                   <option value="" className="bg-background text-foreground">Select an objective</option>
@@ -118,34 +131,36 @@ export function InitiativeForm({ objectives, onSubmit }: InitiativeFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="startDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="endDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>End Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>End Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <DialogFooter>
-          <Button type="submit">Create Initiative</Button>
+          <Button type="submit">{submitButtonText}</Button>
         </DialogFooter>
       </form>
     </Form>
