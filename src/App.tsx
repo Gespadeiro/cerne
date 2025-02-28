@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import Dashboard from "@/pages/Dashboard";
 import Archive from "@/pages/Archive";
-import Garbage from "@/pages/Garbage";
 import CheckIn from "@/pages/CheckIn";
 import InitiativeDetails from "@/pages/InitiativeDetails";
 import KeyResultDetails from "@/pages/KeyResultDetails";
@@ -46,14 +45,6 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Archive />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/garbage" 
-                  element={
-                    <ProtectedRoute>
-                      <Garbage />
                     </ProtectedRoute>
                   } 
                 />
