@@ -25,22 +25,31 @@ export function InitiativeRow({
       className="hover:bg-muted/50 cursor-pointer"
       onClick={onClick}
     >
-      <td className="px-6 py-4 text-sm" style={{ paddingLeft: `${indentLevel * 4 + 24}px` }}>
+      <td className="px-6 py-4 text-sm" style={{ paddingLeft: `${indentLevel * 4}px` }}>
         {initiative.name}
+      </td>
+      <td className="px-6 py-4 text-sm text-muted-foreground">
+        {format(initiative.startDate, "MMM d, yyyy")} - {format(initiative.endDate, "MMM d, yyyy")}
+      </td>
+      <td className="px-6 py-4 text-sm text-muted-foreground">
+        -
+      </td>
+      <td className="px-6 py-4 text-sm text-muted-foreground">
+        -
+      </td>
+      <td className="px-6 py-4 text-sm text-muted-foreground">
+        -
       </td>
       <td className="px-6 py-4 text-sm text-muted-foreground">
         {initiative.progress !== undefined ? `${initiative.progress}%` : "-"}
       </td>
       <td className="px-6 py-4 text-sm text-muted-foreground">
-        {initiative.confidenceLevel !== undefined ? `${initiative.confidenceLevel}%` : "-"}
-      </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground">
-        {initiative.keyResultId ? "Linked" : "None"}
-      </td>
-      <td className="px-6 py-4 text-sm text-muted-foreground">
         <Badge variant={initiative.completed ? "success" : "secondary"}>
           {initiative.completed ? "Completed" : "In Progress"}
         </Badge>
+      </td>
+      <td className="px-6 py-4 text-sm text-muted-foreground">
+        {initiative.confidenceLevel !== undefined ? `${initiative.confidenceLevel}/10` : "-"}
       </td>
       <TableActionButtons 
         onEdit={(e) => {

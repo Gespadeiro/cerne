@@ -3,29 +3,9 @@ import React from "react";
 
 interface TableHeaderProps {
   showStatus?: boolean;
-  columns?: string[];
 }
 
-export function TableHeader({ showStatus = false, columns }: TableHeaderProps) {
-  // If columns are provided, use those
-  if (columns) {
-    return (
-      <thead className="bg-muted/50">
-        <tr>
-          {columns.map((column, index) => (
-            <th
-              key={index}
-              className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-            >
-              {column}
-            </th>
-          ))}
-        </tr>
-      </thead>
-    );
-  }
-
-  // Default columns
+export function TableHeader({ showStatus = false }: TableHeaderProps) {
   return (
     <thead className="bg-muted/50">
       <tr>

@@ -27,11 +27,6 @@ const Dashboard = () => {
   const [isKeyResultDialogOpen, setIsKeyResultDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedObjective, setSelectedObjective] = useState<Objective | null>(null);
-  const [pendingSuggestions, setPendingSuggestions] = useState<{
-    type: string;
-    items: any[];
-    objectiveId: string | null;
-  } | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -40,16 +35,6 @@ const Dashboard = () => {
       fetchObjectives();
     }
   }, [user]);
-
-  useEffect(() => {
-    if (pendingSuggestions && pendingSuggestions.objectiveId) {
-      if (pendingSuggestions.type === 'keyResults') {
-        processPendingKeyResults();
-      } else if (pendingSuggestions.type === 'initiatives') {
-        processPendingInitiatives();
-      }
-    }
-  }, [pendingSuggestions]);
 
   const fetchObjectives = async () => {
     try {
@@ -219,98 +204,6 @@ const Dashboard = () => {
     setIsEditObjectiveDialogOpen(true);
   };
 
-  const processPendingKeyResults = async () => {
-    if (!pendingSuggestions || !pendingSuggestions.objectiveId) return;
-    
-    try {
-      const keyResults = pendingSuggestions.items;
-      const objectiveId = pendingSuggestions.objectiveId;
-      
-      const insertPromises = keyResults.map(async (kr) => {
-        return supabase
-          .from('key_results')
-          .insert({
-            name: kr.name,
-            description: kr.description,
-            objective_id: objectiveId,
-            start_date: new Date().toISOString(),
-            end_date: getObjectiveById(objectiveId)?.endDate.toISOString() || new Date().toISOString(),
-            starting_value: kr.startingValue,
-            goal_value: kr.goalValue,
-          });
-      });
-      
-      await Promise.all(insertPromises);
-      
-      toast({
-        title: "Key Results added",
-        description: `${keyResults.length} key results have been added to your objective.`,
-      });
-      
-      fetchObjectives(); // Refresh data
-    } catch (error: any) {
-      toast({
-        title: "Error adding key results",
-        description: error.message || "An error occurred while adding key results.",
-        variant: "destructive",
-      });
-      console.error("Error adding key results:", error);
-    } finally {
-      setPendingSuggestions(null);
-    }
-  };
-  
-  const processPendingInitiatives = async () => {
-    if (!pendingSuggestions || !pendingSuggestions.objectiveId) return;
-    
-    try {
-      const initiatives = pendingSuggestions.items;
-      const objectiveId = pendingSuggestions.objectiveId;
-      
-      const insertPromises = initiatives.map(async (initiative) => {
-        return supabase
-          .from('initiatives')
-          .insert({
-            name: initiative.name,
-            description: initiative.description,
-            objective_id: objectiveId,
-            start_date: new Date().toISOString(),
-            end_date: getObjectiveById(objectiveId)?.endDate.toISOString() || new Date().toISOString(),
-          });
-      });
-      
-      await Promise.all(insertPromises);
-      
-      toast({
-        title: "Initiatives added",
-        description: `${initiatives.length} initiatives have been added to your objective.`,
-      });
-      
-      fetchObjectives(); // Refresh data
-    } catch (error: any) {
-      toast({
-        title: "Error adding initiatives",
-        description: error.message || "An error occurred while adding initiatives.",
-        variant: "destructive",
-      });
-      console.error("Error adding initiatives:", error);
-    } finally {
-      setPendingSuggestions(null);
-    }
-  };
-
-  const getObjectiveById = (id: string) => {
-    return objectives.find(obj => obj.id === id);
-  };
-
-  const handleSuggestionsCreated = (type: string, items: any[], objectiveId: string) => {
-    setPendingSuggestions({
-      type,
-      items,
-      objectiveId
-    });
-  };
-
   const onObjectiveSubmit = async (data: any) => {
     if (!user) return;
 
@@ -358,34 +251,6 @@ const Dashboard = () => {
       });
       console.error("Error creating objective:", error);
     }
-  };
-
-  const onObjectiveSuggestionsCreated = (type: string, items: any[]) => {
-    // Store these temporarily and await the new objective ID
-    toast({
-      title: "Suggestions received",
-      description: `${items.length} ${type} suggestions ready. Create your objective to add them.`,
-    });
-    
-    const handleObjectiveCreated = async (data: any) => {
-      const result = await onObjectiveSubmit(data);
-      
-      // We'll need to refetch to get the newly created objective
-      const { data: latestObjective, error } = await supabase
-        .from('objectives')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-      
-      if (!error && latestObjective) {
-        handleSuggestionsCreated(type, items, latestObjective.id);
-      }
-    };
-    
-    // Override the normal submit handler
-    return handleObjectiveCreated;
   };
 
   const onObjectiveEdit = async (data: any) => {
@@ -572,16 +437,7 @@ const Dashboard = () => {
                   Create a new objective to track your goals
                 </DialogDescription>
               </DialogHeader>
-              <ObjectiveForm 
-                onSubmit={(data) => {
-                  const submitHandler = onObjectiveSubmit;
-                  return submitHandler(data);
-                }}
-                onSuggestionsCreated={(type, items) => {
-                  // Create a custom submission handler that will also handle the suggestions
-                  return onObjectiveSuggestionsCreated(type, items);
-                }}
-              />
+              <ObjectiveForm onSubmit={onObjectiveSubmit} />
             </DialogContent>
           </Dialog>
 

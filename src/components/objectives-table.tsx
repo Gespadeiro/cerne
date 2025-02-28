@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Objective, KeyResult, Initiative } from "@/lib/types";
 import { useNavigate } from "react-router-dom";
 import { TableHeader } from "./tables/table-header";
-import ObjectiveRow from "./tables/objective-row";
+import { ObjectiveRow } from "./tables/objective-row";
 import {
   Dialog,
   DialogContent,
