@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Initiative } from "@/lib/types";
+import { Initiative, Objective } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -76,6 +76,15 @@ const InitiativeDetails = () => {
 
       if (checkInsError) throw checkInsError;
 
+      // Fetch all key results for this objective (for the edit form)
+      const { data: keyResultsData, error: keyResultsError } = await supabase
+        .from('key_results')
+        .select('*')
+        .eq('objective_id', initiativeData.objective_id)
+        .eq('deleted', false);
+
+      if (keyResultsError) throw keyResultsError;
+
       // Format the data
       const formattedInitiative: Initiative = {
         id: initiativeData.id,
@@ -89,8 +98,32 @@ const InitiativeDetails = () => {
         deleted: initiativeData.deleted,
       };
 
+      // Format the objective with its key results
+      const formattedObjective: Objective = {
+        id: objectiveData.id,
+        name: objectiveData.name,
+        description: objectiveData.description,
+        startDate: new Date(objectiveData.start_date),
+        endDate: new Date(objectiveData.end_date),
+        checkInFrequency: objectiveData.check_in_frequency,
+        deleted: objectiveData.deleted,
+        userId: objectiveData.user_id,
+        initiatives: [],
+        keyResults: keyResultsData.map(kr => ({
+          id: kr.id,
+          name: kr.name,
+          description: kr.description,
+          objectiveId: kr.objective_id,
+          startDate: new Date(kr.start_date),
+          endDate: new Date(kr.end_date),
+          startingValue: Number(kr.starting_value),
+          goalValue: Number(kr.goal_value),
+          deleted: kr.deleted
+        }))
+      };
+
       setInitiative(formattedInitiative);
-      setObjective(objectiveData);
+      setObjective(formattedObjective);
       setKeyResult(keyResultData);
       setCheckIns(checkInsData || []);
     } catch (error: any) {
@@ -176,49 +209,6 @@ const InitiativeDetails = () => {
   if (!initiative || !objective) {
     return <div className="p-6">Initiative not found</div>;
   }
-
-  // Prepare key results for the edit form
-  const objectiveForForm = {
-    ...objective,
-    startDate: new Date(objective.start_date),
-    endDate: new Date(objective.end_date),
-    keyResults: [],
-    initiatives: []
-  };
-
-  // Fetch key results for the objective if we need to show edit dialog
-  const [objectiveKeyResults, setObjectiveKeyResults] = useState<any[]>([]);
-  
-  useEffect(() => {
-    if (isEditDialogOpen && objective) {
-      const fetchKeyResults = async () => {
-        const { data, error } = await supabase
-          .from('key_results')
-          .select('*')
-          .eq('objective_id', objective.id)
-          .eq('deleted', false);
-        
-        if (!error && data) {
-          const formattedKeyResults = data.map(kr => ({
-            id: kr.id,
-            name: kr.name,
-            objectiveId: kr.objective_id,
-            startDate: new Date(kr.start_date),
-            endDate: new Date(kr.end_date),
-            startingValue: Number(kr.starting_value),
-            goalValue: Number(kr.goal_value),
-            description: kr.description,
-            deleted: kr.deleted
-          }));
-          
-          setObjectiveKeyResults(formattedKeyResults);
-          objectiveForForm.keyResults = formattedKeyResults;
-        }
-      };
-      
-      fetchKeyResults();
-    }
-  }, [isEditDialogOpen, objective]);
 
   return (
     <div className="container mx-auto p-6">
@@ -310,9 +300,9 @@ const InitiativeDetails = () => {
           <DialogHeader>
             <DialogTitle>Edit Initiative</DialogTitle>
           </DialogHeader>
-          {initiative && (
+          {objective && initiative && (
             <InitiativeForm
-              objectives={[objectiveForForm]}
+              objectives={[objective]}
               initiative={initiative}
               onSubmit={handleUpdate}
               submitButtonText="Update Initiative"

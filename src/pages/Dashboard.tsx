@@ -437,27 +437,6 @@ const Dashboard = () => {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isInitiativeDialogOpen} onOpenChange={setIsInitiativeDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Initiative
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Initiative</DialogTitle>
-                <DialogDescription>
-                  Create a new initiative for an existing objective
-                </DialogDescription>
-              </DialogHeader>
-              <InitiativeForm 
-                objectives={objectives}
-                onSubmit={onInitiativeSubmit}
-              />
-            </DialogContent>
-          </Dialog>
-
           <Dialog open={isKeyResultDialogOpen} onOpenChange={setIsKeyResultDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -475,6 +454,27 @@ const Dashboard = () => {
               <KeyResultForm 
                 objectives={objectives}
                 onSubmit={onKeyResultSubmit}
+              />
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isInitiativeDialogOpen} onOpenChange={setIsInitiativeDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Initiative
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Initiative</DialogTitle>
+                <DialogDescription>
+                  Create a new initiative for an existing objective
+                </DialogDescription>
+              </DialogHeader>
+              <InitiativeForm 
+                objectives={objectives}
+                onSubmit={onInitiativeSubmit}
               />
             </DialogContent>
           </Dialog>
