@@ -13,6 +13,7 @@ const Garbage = () => {
         <ObjectivesTable
           objectives={deletedItems}
           onDelete={() => {}}
+          onEdit={() => {}}
         />
       </div>
     </div>
