@@ -67,45 +67,47 @@ const Dashboard = () => {
 
       if (keyResultsError) throw keyResultsError;
 
-      // Fetch latest key result check-ins for current values
+      // Fetch latest key result check-ins for current values and confidence
       const keyResultIds = keyResultsData.map(kr => kr.id);
       let keyResultCurrentValues = {};
+      let keyResultConfidenceLevels = {};
       
       if (keyResultIds.length > 0) {
-        const { data: checkInsData, error: checkInsError } = await supabase
-          .from('key_result_check_ins')
-          .select('*')
-          .in('key_result_id', keyResultIds)
-          .order('created_at', { ascending: false });
-        
-        if (!checkInsError && checkInsData) {
-          // Get the latest check-in value for each key result
-          checkInsData.forEach(checkIn => {
-            if (!keyResultCurrentValues[checkIn.key_result_id]) {
-              keyResultCurrentValues[checkIn.key_result_id] = checkIn.current_value;
-            }
-          });
+        // Get the latest check-in for each key result
+        for (const keyResultId of keyResultIds) {
+          const { data: checkInsData, error: checkInsError } = await supabase
+            .from('key_result_check_ins')
+            .select('*')
+            .eq('key_result_id', keyResultId)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          if (!checkInsError && checkInsData && checkInsData.length > 0) {
+            keyResultCurrentValues[keyResultId] = checkInsData[0].current_value;
+            keyResultConfidenceLevels[keyResultId] = checkInsData[0].confidence_level;
+          }
         }
       }
 
-      // Fetch latest initiative check-ins for progress values
+      // Fetch latest initiative check-ins for progress values and confidence
       const initiativeIds = initiativesData.map(init => init.id);
       let initiativeProgress = {};
+      let initiativeConfidenceLevels = {};
       
       if (initiativeIds.length > 0) {
-        const { data: initiativeCheckInsData, error: initiativeCheckInsError } = await supabase
-          .from('initiative_check_ins')
-          .select('*')
-          .in('initiative_id', initiativeIds)
-          .order('created_at', { ascending: false });
-        
-        if (!initiativeCheckInsError && initiativeCheckInsData) {
-          // Get the latest progress for each initiative
-          initiativeCheckInsData.forEach(checkIn => {
-            if (!initiativeProgress[checkIn.initiative_id]) {
-              initiativeProgress[checkIn.initiative_id] = checkIn.progress_percentage;
-            }
-          });
+        // Get the latest check-in for each initiative
+        for (const initiativeId of initiativeIds) {
+          const { data: initiativeCheckInsData, error: initiativeCheckInsError } = await supabase
+            .from('initiative_check_ins')
+            .select('*')
+            .eq('initiative_id', initiativeId)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          if (!initiativeCheckInsError && initiativeCheckInsData && initiativeCheckInsData.length > 0) {
+            initiativeProgress[initiativeId] = initiativeCheckInsData[0].progress_percentage;
+            initiativeConfidenceLevels[initiativeId] = initiativeCheckInsData[0].confidence_level;
+          }
         }
       }
 
@@ -123,7 +125,8 @@ const Dashboard = () => {
             endDate: new Date(init.end_date),
             deleted: init.deleted,
             completed: init.completed,
-            progress: initiativeProgress[init.id] !== undefined ? initiativeProgress[init.id] : undefined
+            progress: initiativeProgress[init.id] !== undefined ? initiativeProgress[init.id] : undefined,
+            confidenceLevel: initiativeConfidenceLevels[init.id] !== undefined ? initiativeConfidenceLevels[init.id] : undefined
           }));
 
         const objectiveKeyResults = keyResultsData
@@ -138,6 +141,7 @@ const Dashboard = () => {
             startingValue: Number(kr.starting_value),
             goalValue: Number(kr.goal_value),
             currentValue: keyResultCurrentValues[kr.id] !== undefined ? keyResultCurrentValues[kr.id] : undefined,
+            confidenceLevel: keyResultConfidenceLevels[kr.id] !== undefined ? keyResultConfidenceLevels[kr.id] : undefined,
             deleted: kr.deleted
           }));
 
