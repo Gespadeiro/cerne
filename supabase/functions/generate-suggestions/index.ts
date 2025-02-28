@@ -1,174 +1,195 @@
 
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import OpenAI from "https://esm.sh/openai@4.10.0";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+interface OkrRequestBody {
+  type: string;
+  objective?: {
+    name: string;
+    description: string;
+  };
+  message?: string;
+}
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Get request body
-    const body = await req.json();
-    const { type } = body;
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ error: "OpenAI API key not configured" }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }, 
+          status: 500 
+        }
+      );
+    }
 
-    if (type === 'checkApiKey') {
-      if (!openAIApiKey) {
-        throw new Error('OpenAI API key not found');
+    // Create a Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
       }
-      return new Response(JSON.stringify({ status: 'ok' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    );
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not found');
-    }
-
-    // Handle different request types
-    if (type === 'keyResults') {
-      return await generateKeyResultSuggestions(body, corsHeaders);
-    } else if (type === 'initiatives') {
-      return await generateInitiativeSuggestions(body, corsHeaders);
-    } else if (type === 'chat') {
-      return await handleChatRequest(body, corsHeaders);
-    } else {
-      throw new Error('Invalid suggestion type');
-    }
-  } catch (error) {
-    console.error('Error in generate-suggestions function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // Create OpenAI client
+    const openai = new OpenAI({
+      apiKey: apiKey
     });
+
+    // Get request data
+    const requestData: OkrRequestBody = await req.json();
+
+    if (requestData.type === 'checkApiKey') {
+      // Just check if the API key exists and return success
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (requestData.type === 'chat') {
+      // Handle generic chat request
+      const chatCompletion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are an OKR assistant that helps users draft objectives, key results, and initiatives. Keep your responses concise and focused on OKR best practices. If you're unsure about something, be honest about your limitations."
+          },
+          {
+            role: "user",
+            content: requestData.message || "Hello"
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000,
+      });
+
+      const suggestions = chatCompletion.choices[0].message.content || "Sorry, I couldn't generate a response.";
+
+      return new Response(
+        JSON.stringify({ suggestions }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!requestData.objective && (requestData.type === 'keyResults' || requestData.type === 'initiatives')) {
+      return new Response(
+        JSON.stringify({ error: "Objective data is required for generating suggestions" }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }, 
+          status: 400 
+        }
+      );
+    }
+
+    let prompt;
+    if (requestData.type === 'keyResults') {
+      prompt = `Generate 3-5 meaningful key results for the following objective:
+      
+Objective: ${requestData.objective?.name}
+Description: ${requestData.objective?.description}
+
+For each key result, include:
+1. A name (concise, specific, and measurable)
+2. A brief description
+3. Starting value (a number, typically 0)
+4. Goal value (the target number to reach)
+
+Format your response as a valid JSON array with objects having 'name', 'description', 'startingValue', and 'goalValue' fields.`;
+    } else if (requestData.type === 'initiatives') {
+      prompt = `Generate 3-5 practical initiatives for the following objective:
+      
+Objective: ${requestData.objective?.name}
+Description: ${requestData.objective?.description}
+
+For each initiative, include:
+1. A name (action-oriented and specific)
+2. A description explaining how it will contribute to the objective
+
+Format your response as a valid JSON array with objects having 'name' and 'description' fields.`;
+    } else {
+      return new Response(
+        JSON.stringify({ error: "Invalid suggestion type" }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }, 
+          status: 400 
+        }
+      );
+    }
+
+    // Call OpenAI API
+    const chatCompletion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are an OKR assistant that helps draft objectives, key results, and initiatives."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    });
+
+    const resultText = chatCompletion.choices[0].message.content || "";
+    
+    // Extract JSON from the response
+    let jsonString = resultText;
+    // If response contains markdown code blocks, extract just the JSON
+    const jsonMatch = resultText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch && jsonMatch[1]) {
+      jsonString = jsonMatch[1];
+    }
+    
+    let suggestions;
+    try {
+      suggestions = JSON.parse(jsonString);
+    } catch (e) {
+      console.error("Failed to parse JSON from OpenAI response", e);
+      return new Response(
+        JSON.stringify({ 
+          error: "Failed to parse suggestions", 
+          rawResponse: resultText 
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }, 
+          status: 500 
+        }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ suggestions }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" }, 
+        status: 500 
+      }
+    );
   }
 });
-
-async function generateKeyResultSuggestions(body: any, corsHeaders: any) {
-  const { objective } = body;
-
-  if (!objective) {
-    throw new Error('Objective information is required');
-  }
-
-  const systemPrompt = 'You are an expert in OKRs (Objectives and Key Results) helping to create measurable key results for objectives.';
-  const userPrompt = `Based on the following objective, suggest 3-5 measurable key results that would help achieve this objective. 
-    For each key result, provide:
-    1. Name (brief, clear title)
-    2. Description (1-2 sentences explaining the key result)
-    3. Starting value (a numeric value where the metric begins)
-    4. Goal value (the target numeric value)
-    
-    Format your response as a valid JSON array with objects containing these fields: name, description, startingValue, goalValue
-    
-    Objective name: ${objective.name}
-    Objective description: ${objective.description || 'No description provided'}
-    Objective timeframe: ${objective.startDate} to ${objective.endDate}`;
-
-  const suggestions = await callOpenAI(systemPrompt, userPrompt);
-  return new Response(JSON.stringify({ suggestions }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
-
-async function generateInitiativeSuggestions(body: any, corsHeaders: any) {
-  const { objective } = body;
-
-  if (!objective) {
-    throw new Error('Objective information is required');
-  }
-
-  const systemPrompt = 'You are an expert in OKRs (Objectives and Key Results) helping to create actionable initiatives to support objectives.';
-  const userPrompt = `Based on the following objective, suggest 3-5 actionable initiatives that would help achieve this objective.
-    For each initiative, provide:
-    1. Name (brief, clear title)
-    2. Description (2-3 sentences explaining what the initiative involves and how it contributes to the objective)
-    
-    Format your response as a valid JSON array with objects containing these fields: name, description
-    
-    Objective name: ${objective.name}
-    Objective description: ${objective.description || 'No description provided'}
-    Objective timeframe: ${objective.startDate} to ${objective.endDate}`;
-
-  const suggestions = await callOpenAI(systemPrompt, userPrompt);
-  return new Response(JSON.stringify({ suggestions }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
-
-async function handleChatRequest(body: any, corsHeaders: any) {
-  const { message } = body;
-
-  if (!message) {
-    throw new Error('Message is required');
-  }
-
-  const systemPrompt = `You are an OKR (Objectives and Key Results) expert assistant. 
-  You provide helpful, accurate, and concise guidance about:
-  - Creating effective objectives
-  - Designing measurable key results
-  - Planning strategic initiatives
-  - Implementing OKR best practices
-  - Setting up tracking systems
-  - Handling OKR challenges
-  
-  You are encouraging but honest about what makes a good OKR system.`;
-
-  const suggestions = await callOpenAI(systemPrompt, message, false);
-  return new Response(JSON.stringify({ suggestions }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
-}
-
-async function callOpenAI(systemPrompt: string, userPrompt: string, parseJSON = true) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAIApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-    }),
-  });
-
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.error?.message || 'Error calling OpenAI API');
-  }
-
-  const generatedContent = data.choices[0].message.content;
-  
-  // If we don't need to parse JSON, just return the raw content
-  if (!parseJSON) {
-    return generatedContent;
-  }
-  
-  // Try to parse the response as JSON
-  try {
-    return JSON.parse(generatedContent);
-  } catch (e) {
-    console.error("Failed to parse OpenAI response as JSON:", e);
-    // Extract JSON from markdown if necessary
-    const jsonPattern = /```json\n([\s\S]*?)\n```/;
-    const match = generatedContent.match(jsonPattern);
-    if (match && match[1]) {
-      return JSON.parse(match[1]);
-    } else {
-      throw new Error('Could not parse AI suggestions into a usable format');
-    }
-  }
-}

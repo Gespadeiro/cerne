@@ -1,7 +1,10 @@
-
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -10,258 +13,316 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
-import { Objective } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
-import { useState } from "react";
-import { Lightbulb } from "lucide-react";
-import { SuggestionsDialog } from "@/components/ai-suggestions/suggestions-dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, Lightbulb } from "lucide-react";
+import { Objective } from "@/lib/types";
+import { AddSuggestionsButton } from "./ai-suggestions/add-suggestions-button";
 
-const objectiveSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  description: z.string(),
-  startDate: z.string(),
-  endDate: z.string(),
-  checkInFrequency: z.number().min(1, "Frequency must be at least 1").max(365, "Frequency cannot exceed 365"),
+const checkInFrequencyOptions = [
+  { label: "Weekly", value: "weekly" },
+  { label: "Biweekly", value: "biweekly" },
+  { label: "Monthly", value: "monthly" },
+  { label: "Quarterly", value: "quarterly" },
+];
+
+const formSchema = z.object({
+  name: z.string().min(1, "Objective name is required"),
+  description: z.string().optional(),
+  startDate: z.date({
+    required_error: "Start date is required",
+  }),
+  endDate: z.date({
+    required_error: "End date is required",
+  }).refine(date => date > new Date(), {
+    message: "End date must be in the future",
+  }),
+  checkInFrequency: z.string({
+    required_error: "Check-in frequency is required",
+  }),
+}).refine(data => data.endDate > data.startDate, {
+  message: "End date must be after start date",
+  path: ["endDate"],
 });
 
-type ObjectiveFormProps = {
-  onSubmit: (data: z.infer<typeof objectiveSchema>) => void;
+type FormData = z.infer<typeof formSchema>;
+
+interface ObjectiveFormProps {
+  onSubmit: (data: FormData) => Promise<void> | void;
+  onSuggestionsCreated?: (type: string, items: any[]) => ((data: FormData) => Promise<void> | void) | undefined;
   objective?: Objective;
   submitButtonText?: string;
-  onSuggestionsCreated?: (type: string, items: any[]) => void;
-};
+}
 
-export function ObjectiveForm({ 
-  onSubmit, 
-  objective, 
+export function ObjectiveForm({
+  onSubmit,
+  onSuggestionsCreated,
+  objective,
   submitButtonText = "Create Objective",
-  onSuggestionsCreated
 }: ObjectiveFormProps) {
-  const [showKRSuggestions, setShowKRSuggestions] = useState(false);
-  const [showInitiativeSuggestions, setShowInitiativeSuggestions] = useState(false);
-  const [tempObjective, setTempObjective] = useState<Objective | null>(null);
-  const { toast } = useToast();
+  const [suggestionsTab, setSuggestionsTab] = useState<"keyResults" | "initiatives" | null>(null);
+  const [pendingSuggestions, setPendingSuggestions] = useState<{ type: string, items: any[] } | null>(null);
 
-  const formatDateForInput = (date: Date) => {
-    return format(date, "yyyy-MM-dd");
-  };
-
-  const form = useForm({
-    resolver: zodResolver(objectiveSchema),
-    defaultValues: objective ? {
-      name: objective.name,
-      description: objective.description || "",
-      startDate: formatDateForInput(objective.startDate),
-      endDate: formatDateForInput(objective.endDate),
-      checkInFrequency: objective.checkInFrequency,
-    } : {
-      name: "",
-      description: "",
-      startDate: "",
-      endDate: "",
-      checkInFrequency: 7,
-    },
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: objective
+      ? {
+          name: objective.name,
+          description: objective.description,
+          startDate: objective.startDate,
+          endDate: objective.endDate,
+          checkInFrequency: objective.checkInFrequency,
+        }
+      : {
+          name: "",
+          description: "",
+          startDate: new Date(),
+          endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
+          checkInFrequency: "monthly",
+        },
   });
 
-  const prepareTempObjective = () => {
-    const formValues = form.getValues();
-    if (!formValues.name) {
-      toast({
-        title: "Missing information",
-        description: "Please provide at least a name for your objective to generate suggestions",
-        variant: "destructive",
-      });
-      return null;
+  const handleFormSubmit = (data: FormData) => {
+    // If we have pending suggestions and a handler for them, use that handler
+    if (pendingSuggestions && onSuggestionsCreated) {
+      const alternativeSubmitHandler = onSuggestionsCreated(
+        pendingSuggestions.type, 
+        pendingSuggestions.items
+      );
+      
+      if (alternativeSubmitHandler) {
+        return alternativeSubmitHandler(data);
+      }
     }
-
-    return {
-      id: objective?.id || "temp-id",
-      name: formValues.name,
-      description: formValues.description,
-      startDate: formValues.startDate ? new Date(formValues.startDate) : new Date(),
-      endDate: formValues.endDate ? new Date(formValues.endDate) : new Date(),
-      checkInFrequency: formValues.checkInFrequency,
-      deleted: false,
-      initiatives: [],
-      keyResults: [],
-    };
+    
+    // Otherwise use the default handler
+    return onSubmit(data);
   };
 
-  const handleShowKRSuggestions = () => {
-    const temp = prepareTempObjective();
-    if (temp) {
-      setTempObjective(temp);
-      setShowKRSuggestions(true);
-    }
-  };
-
-  const handleShowInitiativeSuggestions = () => {
-    const temp = prepareTempObjective();
-    if (temp) {
-      setTempObjective(temp);
-      setShowInitiativeSuggestions(true);
-    }
-  };
-
-  const handleAddKeyResults = async (items: any[]) => {
-    if (onSuggestionsCreated) {
-      onSuggestionsCreated("keyResults", items);
-    } else {
-      toast({
-        title: "Suggestions saved",
-        description: `${items.length} key result suggestions saved. You can use them after creating the objective.`,
-      });
-    }
-  };
-
-  const handleAddInitiatives = async (items: any[]) => {
-    if (onSuggestionsCreated) {
-      onSuggestionsCreated("initiatives", items);
-    } else {
-      toast({
-        title: "Suggestions saved",
-        description: `${items.length} initiative suggestions saved. You can use them after creating the objective.`,
-      });
-    }
-  };
-
+  // Reset suggestions when unmounting
   return (
-    <>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+        <Tabs defaultValue="basic" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic">Basic Info</TabsTrigger>
+            {!objective && (
+              <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
             )}
-          />
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea {...field} className="h-20" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="grid grid-cols-2 gap-4">
+          </TabsList>
+          
+          <TabsContent value="basic" className="space-y-4 pt-4">
             <FormField
               control={form.control}
-              name="startDate"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Start Date</FormLabel>
+                  <FormLabel>Objective Name</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input placeholder="Increase customer satisfaction" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
-              name="endDate"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>End Date</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Textarea
+                      placeholder="Improve our customer satisfaction scores through better support and product quality"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          <FormField
-            control={form.control}
-            name="checkInFrequency"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Check-in Frequency (days)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
-                    onChange={e => field.onChange(Number(e.target.value))}
-                    min={1}
-                    max={365}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Start Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date < new Date(new Date().setDate(new Date().getDate() - 1))
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>End Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date < new Date(new Date().setDate(new Date().getDate() - 1))
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="checkInFrequency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Check-in Frequency</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {checkInFrequencyOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </TabsContent>
           
           {!objective && (
-            <div className="flex flex-col gap-2 my-4">
-              <p className="text-sm text-muted-foreground mb-1">AI Suggestions:</p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-1"
-                  onClick={handleShowKRSuggestions}
-                >
-                  <Lightbulb className="h-4 w-4" />
-                  Generate Key Results
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-1"
-                  onClick={handleShowInitiativeSuggestions}
-                >
-                  <Lightbulb className="h-4 w-4" />
-                  Generate Initiatives
-                </Button>
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button type="submit">{submitButtonText}</Button>
-          </DialogFooter>
-        </form>
-      </Form>
+            <TabsContent value="suggestions" className="pt-4">
+              <div className="space-y-6">
+                <div className="text-sm text-muted-foreground">
+                  After creating your objective, use AI to generate suggestions for key results and initiatives.
+                </div>
+                
+                <div className="grid gap-4">
+                  <div className="border rounded-md p-4">
+                    <h3 className="font-medium mb-2 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4" />
+                      AI-Generated Key Results
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Generate measurable outcomes to track success
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSuggestionsTab("keyResults")}
+                      type="button"
+                      className="w-full"
+                    >
+                      Generate Key Results
+                    </Button>
+                  </div>
 
-      {tempObjective && (
-        <>
-          <SuggestionsDialog
-            open={showKRSuggestions}
-            onOpenChange={setShowKRSuggestions}
-            objective={tempObjective}
-            type="keyResults"
-            onAddItems={handleAddKeyResults}
-          />
-          
-          <SuggestionsDialog
-            open={showInitiativeSuggestions}
-            onOpenChange={setShowInitiativeSuggestions}
-            objective={tempObjective}
-            type="initiatives"
-            onAddItems={handleAddInitiatives}
-          />
-        </>
-      )}
-    </>
+                  <div className="border rounded-md p-4">
+                    <h3 className="font-medium mb-2 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4" />
+                      AI-Generated Initiatives
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Generate actionable activities to help achieve the objective
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSuggestionsTab("initiatives")}
+                      type="button"
+                      className="w-full"
+                    >
+                      Generate Initiatives
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "Submitting..." : submitButtonText}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

@@ -1,18 +1,18 @@
 
-import { ModeToggle } from "./theme-toggle";
+import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Menu, X, Home, LayoutDashboard, CheckSquare, Archive as ArchiveIcon, Bot } from "lucide-react";
 import clsx from 'clsx';
-import { isMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function AppNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const mobile = isMobile();
+  const mobile = useIsMobile();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -54,7 +54,7 @@ export function AppNavbar() {
         )}
       </div>
       <div className="flex items-center gap-2 mt-4 md:mt-0">
-        <ModeToggle />
+        <ThemeToggle />
         {user ? (
           <Button
             variant="outline"

@@ -1,42 +1,25 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Objective, KeyResult, Initiative } from "@/lib/types";
-import { Loader2, Check, X, Lightbulb } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-
-type SuggestionType = "keyResults" | "initiatives";
-
-interface KeyResultSuggestion {
-  name: string;
-  description: string;
-  startingValue: number;
-  goalValue: number;
-}
-
-interface InitiativeSuggestion {
-  name: string;
-  description: string;
-}
+import { Objective } from "@/lib/types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SuggestionsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   objective: Objective;
-  type: SuggestionType;
-  onAddItems: (items: any[]) => void;
+  type: "keyResults" | "initiatives";
+  onAddItems: (items: any[]) => Promise<void>;
 }
 
 export function SuggestionsDialog({
@@ -46,158 +29,210 @@ export function SuggestionsDialog({
   type,
   onAddItems,
 }: SuggestionsDialogProps) {
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [selectedItems, setSelectedItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKeySet, setApiKeySet] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<(KeyResultSuggestion | InitiativeSuggestion)[]>([]);
-  const [selectedSuggestions, setSelectedSuggestions] = useState<Set<number>>(new Set());
   const { toast } = useToast();
 
-  const fetchSuggestions = async () => {
-    setIsLoading(true);
-    setError(null);
-    
+  useEffect(() => {
+    if (open) {
+      checkApiKey();
+      setSelectedItems([]);
+      setSuggestions([]);
+      setError(null);
+    }
+  }, [open]);
+
+  const checkApiKey = async () => {
     try {
-      const objectiveData = {
-        name: objective.name,
-        description: objective.description,
-        startDate: format(objective.startDate, 'yyyy-MM-dd'),
-        endDate: format(objective.endDate, 'yyyy-MM-dd'),
-      };
+      setIsLoading(true);
+      const { data, error } = await supabase.functions.invoke('generate-suggestions', {
+        body: { type: 'checkApiKey' },
+      });
+      
+      if (error) {
+        console.error("Error checking API key:", error);
+        setApiKeySet(false);
+      } else {
+        setApiKeySet(true);
+        // If API key is set, fetch suggestions
+        fetchSuggestions();
+      }
+    } catch (err) {
+      console.error("Error checking API key:", err);
+      setApiKeySet(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchSuggestions = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
       const { data, error } = await supabase.functions.invoke('generate-suggestions', {
-        body: { type, objective: objectiveData },
+        body: {
+          type,
+          objective: {
+            name: objective.name,
+            description: objective.description
+          }
+        }
       });
 
       if (error) {
         throw new Error(error.message);
       }
 
-      setSuggestions(data.suggestions);
+      if (data && data.suggestions) {
+        setSuggestions(data.suggestions);
+        // By default, select all suggestions
+        setSelectedItems(data.suggestions);
+      } else if (data && data.error) {
+        setError(data.error);
+      }
     } catch (err: any) {
-      console.error('Error fetching suggestions:', err);
-      setError(err.message || 'Failed to fetch suggestions');
-      toast({
-        title: "Error",
-        description: err.message || 'Failed to fetch suggestions',
-        variant: "destructive",
-      });
+      console.error("Error fetching suggestions:", err);
+      setError(err.message || "Failed to fetch suggestions. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleSuggestion = (index: number) => {
-    const newSelected = new Set(selectedSuggestions);
-    if (newSelected.has(index)) {
-      newSelected.delete(index);
+  const toggleItem = (item: any) => {
+    if (selectedItems.some((i) => i.name === item.name)) {
+      setSelectedItems(selectedItems.filter((i) => i.name !== item.name));
     } else {
-      newSelected.add(index);
+      setSelectedItems([...selectedItems, item]);
     }
-    setSelectedSuggestions(newSelected);
   };
 
-  const handleAddSelected = () => {
-    const selectedItems = Array.from(selectedSuggestions).map(index => suggestions[index]);
-    onAddItems(selectedItems);
-    onOpenChange(false);
+  const handleAdd = async () => {
+    if (selectedItems.length === 0) {
+      toast({
+        title: "No items selected",
+        description: "Please select at least one item to add.",
+      });
+      return;
+    }
+
+    try {
+      await onAddItems(selectedItems);
+      onOpenChange(false);
+    } catch (err: any) {
+      toast({
+        title: `Error adding ${type}`,
+        description: err.message || `An error occurred while adding ${type}.`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const refreshSuggestions = () => {
+    setSuggestions([]);
+    setSelectedItems([]);
+    fetchSuggestions();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <Lightbulb className="mr-2 h-5 w-5" />
-            AI Suggestions for {type === "keyResults" ? "Key Results" : "Initiatives"}
-          </DialogTitle>
-          <DialogDescription>
-            Get AI-generated suggestions for your objective: <span className="font-semibold">{objective.name}</span>
-          </DialogDescription>
-        </DialogHeader>
+    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>
+          {type === "keyResults" ? "AI-Suggested Key Results" : "AI-Suggested Initiatives"}
+        </DialogTitle>
+        <DialogDescription>
+          {type === "keyResults"
+            ? "Select the key results you want to add to your objective."
+            : "Select the initiatives you want to add to your objective."}
+        </DialogDescription>
+      </DialogHeader>
 
-        <div className="flex-grow flex flex-col min-h-0">
-          {isLoading ? (
-            <div className="flex-grow flex items-center justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2">Generating suggestions...</span>
-            </div>
-          ) : error ? (
-            <div className="flex-grow flex flex-col items-center justify-center py-10 text-destructive">
-              <p className="text-center mb-4">{error}</p>
-              <Button onClick={fetchSuggestions}>Try Again</Button>
-            </div>
-          ) : suggestions.length > 0 ? (
-            <ScrollArea className="flex-grow pr-4">
-              <div className="space-y-3 my-4">
-                {suggestions.map((suggestion, index) => (
-                  <Card 
-                    key={index} 
-                    className={`transition-colors cursor-pointer ${
-                      selectedSuggestions.has(index) ? 'border-primary bg-primary/5' : ''
-                    }`}
-                    onClick={() => toggleSuggestion(index)}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{suggestion.name}</CardTitle>
-                        {selectedSuggestions.has(index) ? (
-                          <Check className="h-5 w-5 text-primary" />
-                        ) : (
-                          <div className="w-5 h-5" /> // Empty space for alignment
-                        )}
-                      </div>
-                      <CardDescription>{suggestion.description}</CardDescription>
-                    </CardHeader>
+      {apiKeySet === false && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            OpenAI API key is not configured. Ask your administrator to set up the OPENAI_API_KEY in Supabase Edge Function secrets.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="my-2">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2 text-lg">Generating suggestions...</span>
+          </div>
+        ) : suggestions.length > 0 ? (
+          <div className="space-y-4">
+            {suggestions.map((item, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-lg border ${
+                  selectedItems.some((i) => i.name === item.name)
+                    ? "border-primary bg-primary/5"
+                    : "border-border"
+                }`}
+                onClick={() => toggleItem(item)}
+              >
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.some((i) => i.name === item.name)}
+                    onChange={() => toggleItem(item)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <h3 className="font-medium text-lg">{item.name}</h3>
+                    <p className="text-muted-foreground">{item.description}</p>
                     {type === "keyResults" && (
-                      <CardContent className="pb-4 pt-0">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">Starting Value:</span>{" "}
-                            {(suggestion as KeyResultSuggestion).startingValue}
-                          </div>
-                          <div>
-                            <span className="font-medium">Goal Value:</span>{" "}
-                            {(suggestion as KeyResultSuggestion).goalValue}
-                          </div>
-                        </div>
-                      </CardContent>
+                      <div className="mt-2 text-sm">
+                        <span className="inline-block bg-muted px-2 py-1 rounded mr-2">
+                          Start: {item.startingValue}
+                        </span>
+                        <span className="inline-block bg-muted px-2 py-1 rounded">
+                          Goal: {item.goalValue}
+                        </span>
+                      </div>
                     )}
-                  </Card>
-                ))}
+                  </div>
+                </div>
               </div>
-            </ScrollArea>
-          ) : (
-            <div className="flex-grow flex flex-col items-center justify-center py-10">
-              <p className="text-center mb-4">
-                Get AI-powered suggestions for {type === "keyResults" ? "key results" : "initiatives"} 
-                based on your objective.
-              </p>
-              <Button onClick={fetchSuggestions}>Generate Suggestions</Button>
+            ))}
+          </div>
+        ) : (
+          !isLoading &&
+          !error &&
+          apiKeySet && (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Click "Generate" to get AI suggestions.</p>
             </div>
-          )}
-        </div>
+          )
+        )}
+      </div>
 
-        <DialogFooter className="pt-4 flex items-center justify-between flex-row">
-          <div>
-            {suggestions.length > 0 && (
-              <span className="text-sm text-muted-foreground">
-                {selectedSuggestions.size} of {suggestions.length} selected
-              </span>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleAddSelected} 
-              disabled={selectedSuggestions.size === 0}
-            >
-              Add Selected
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <DialogFooter className="flex gap-2 sm:gap-0">
+        <Button
+          variant="outline"
+          onClick={refreshSuggestions}
+          disabled={isLoading || apiKeySet === false}
+        >
+          {suggestions.length > 0 ? "Regenerate" : "Generate"}
+        </Button>
+        <Button 
+          onClick={handleAdd} 
+          disabled={selectedItems.length === 0 || isLoading}
+        >
+          Add Selected {selectedItems.length > 0 && `(${selectedItems.length})`}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
