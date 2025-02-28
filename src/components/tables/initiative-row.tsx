@@ -3,6 +3,7 @@ import React from "react";
 import { Initiative } from "@/lib/types";
 import { format } from "date-fns";
 import { TableActionButtons } from "./table-action-buttons";
+import { Badge } from "@/components/ui/badge";
 
 interface InitiativeRowProps {
   initiative: Initiative;
@@ -41,6 +42,11 @@ export function InitiativeRow({
       </td>
       <td className="px-6 py-4 text-sm text-muted-foreground">
         {initiative.progress !== undefined ? `${initiative.progress}%` : "-"}
+      </td>
+      <td className="px-6 py-4 text-sm text-muted-foreground">
+        <Badge variant={initiative.completed ? "success" : "secondary"}>
+          {initiative.completed ? "Completed" : "In Progress"}
+        </Badge>
       </td>
       <TableActionButtons onEdit={onEdit} onDelete={onDelete} />
     </tr>

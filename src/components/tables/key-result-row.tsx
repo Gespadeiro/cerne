@@ -13,7 +13,7 @@ interface KeyResultRowProps {
   onEdit: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
   onInitiativeClick: (id: string) => void;
-  onInitiativeEdit: (id: string, e: React.MouseEvent) => void;
+  onInitiativeEdit: (initiative: Initiative, e: React.MouseEvent) => void;
   onInitiativeDelete: (id: string, e: React.MouseEvent) => void;
 }
 
@@ -28,7 +28,7 @@ export function KeyResultRow({
   onInitiativeDelete
 }: KeyResultRowProps) {
   return (
-    <React.Fragment>
+    <>
       {/* Key Result Row */}
       <tr 
         className="hover:bg-muted/50 cursor-pointer"
@@ -52,6 +52,9 @@ export function KeyResultRow({
         <td className="px-6 py-4 text-sm text-muted-foreground">
           {calculateProgress(keyResult)}
         </td>
+        <td className="px-6 py-4 text-sm text-muted-foreground">
+          -
+        </td>
         <TableActionButtons 
           onEdit={onEdit} 
           onDelete={onDelete} 
@@ -65,10 +68,10 @@ export function KeyResultRow({
           initiative={initiative}
           indentLevel={14}
           onClick={() => onInitiativeClick(initiative.id)}
-          onEdit={(e) => onInitiativeEdit(initiative.id, e)}
+          onEdit={(e) => onInitiativeEdit(initiative, e)}
           onDelete={(e) => onInitiativeDelete(initiative.id, e)}
         />
       ))}
-    </React.Fragment>
+    </>
   );
 }

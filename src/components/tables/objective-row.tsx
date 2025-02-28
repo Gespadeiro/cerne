@@ -11,10 +11,10 @@ interface ObjectiveRowProps {
   onEdit: () => void;
   onDelete: () => void;
   onKeyResultClick: (id: string) => void;
-  onKeyResultEdit: (id: string, e: React.MouseEvent) => void;
+  onKeyResultEdit: (keyResult: KeyResult, e: React.MouseEvent) => void;
   onKeyResultDelete: (id: string, e: React.MouseEvent) => void;
   onInitiativeClick: (id: string) => void;
-  onInitiativeEdit: (id: string, e: React.MouseEvent) => void;
+  onInitiativeEdit: (initiative: Initiative, e: React.MouseEvent) => void;
   onInitiativeDelete: (id: string, e: React.MouseEvent) => void;
 }
 
@@ -37,7 +37,7 @@ export function ObjectiveRow({
     .filter(init => !init.deleted && !init.keyResultId);
 
   return (
-    <React.Fragment>
+    <>
       {/* Objective Row */}
       <tr className="bg-muted/30 cursor-pointer">
         <td className="px-6 py-4 text-sm font-medium">
@@ -45,6 +45,9 @@ export function ObjectiveRow({
         </td>
         <td className="px-6 py-4 text-sm text-muted-foreground">
           {format(objective.startDate, "MMM d, yyyy")} - {format(objective.endDate, "MMM d, yyyy")}
+        </td>
+        <td className="px-6 py-4 text-sm text-muted-foreground">
+          -
         </td>
         <td className="px-6 py-4 text-sm text-muted-foreground">
           -
@@ -82,7 +85,7 @@ export function ObjectiveRow({
             keyResult={keyResult}
             initiatives={keyResultInitiatives}
             onClick={() => onKeyResultClick(keyResult.id)}
-            onEdit={(e) => onKeyResultEdit(keyResult.id, e)}
+            onEdit={(e) => onKeyResultEdit(keyResult, e)}
             onDelete={(e) => onKeyResultDelete(keyResult.id, e)}
             onInitiativeClick={onInitiativeClick}
             onInitiativeEdit={onInitiativeEdit}
@@ -98,10 +101,10 @@ export function ObjectiveRow({
           initiative={initiative}
           indentLevel={10}
           onClick={() => onInitiativeClick(initiative.id)}
-          onEdit={(e) => onInitiativeEdit(initiative.id, e)}
+          onEdit={(e) => onInitiativeEdit(initiative, e)}
           onDelete={(e) => onInitiativeDelete(initiative.id, e)}
         />
       ))}
-    </React.Fragment>
+    </>
   );
 }
