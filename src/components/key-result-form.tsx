@@ -91,7 +91,7 @@ export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} className="h-20" /> {/* Reduced height */}
+                <Textarea {...field} className="h-20" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -105,7 +105,7 @@ export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
               <FormLabel>Objective</FormLabel>
               <FormControl>
                 <select
-                  className="w-full border rounded-md p-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  className="w-full border rounded-md p-2 bg-background text-foreground hover:bg-muted/50"
                   {...field}
                 >
                   <option value="" className="bg-background text-foreground">Select an objective</option>
