@@ -1,81 +1,107 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { ModeToggle } from "./theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Home, 
-  LayoutDashboard, 
-  Archive, 
-  ClipboardCheck,
-  LogOut
-} from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { LogOut, Menu, X, Home, LayoutDashboard, CheckSquare, Archive as ArchiveIcon, Bot } from "lucide-react";
+import clsx from 'clsx';
+import { isMobile } from '@/hooks/use-mobile';
 
 export function AppNavbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const mobile = isMobile();
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
-  const navItems = [
-    { path: "/home", label: "Home", icon: Home },
-    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/check-in", label: "Check In", icon: ClipboardCheck },
-    { path: "/archive", label: "Archive", icon: Archive }
-  ];
+  const renderNavLink = (to: string, label: string, icon: React.ReactNode) => (
+    <Link
+      to={to}
+      className={clsx(
+        "flex items-center px-4 py-2 rounded-md transition-colors hover:bg-muted",
+        isActive(to) && "bg-muted font-medium"
+      )}
+      onClick={closeMenu}
+    >
+      {icon}
+      <span className="ml-2">{label}</span>
+    </Link>
+  );
 
-  if (!user) return null;
+  const renderNavbar = () => (
+    <div className="flex flex-col md:flex-row md:items-center w-full">
+      <div className="flex flex-col md:flex-row md:items-center flex-1 gap-1 md:gap-2">
+        {renderNavLink("/", "Home", <Home size={16} />)}
+        {user && (
+          <>
+            {renderNavLink("/dashboard", "Dashboard", <LayoutDashboard size={16} />)}
+            {renderNavLink("/archive", "Archive", <ArchiveIcon size={16} />)}
+            {renderNavLink("/checkin", "Check-In", <CheckSquare size={16} />)}
+            {renderNavLink("/chat", "AI Assistant", <Bot size={16} />)}
+          </>
+        )}
+      </div>
+      <div className="flex items-center gap-2 mt-4 md:mt-0">
+        <ModeToggle />
+        {user ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1"
+            onClick={() => {
+              signOut();
+              closeMenu();
+            }}
+          >
+            <LogOut size={16} />
+            <span>Sign Out</span>
+          </Button>
+        ) : (
+          <Button asChild size="sm">
+            <Link to="/auth" onClick={closeMenu}>Sign In</Link>
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 
   return (
-    <nav className="bg-card border-b p-2 sticky top-0 z-10 w-full">
-      <div className="flex items-center justify-between container px-4">
-        <div className="flex items-center space-x-2">
-          <Link to="/home" className="text-xl font-bold flex items-center mr-4 text-cerne-blue hover:text-cerne-orange transition-colors">
-            Cerne
+    <header className="sticky top-0 z-40 w-full bg-background border-b">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2 font-semibold">
+            <span className="hidden md:inline-block">OKR Manager</span>
           </Link>
-          
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <Link key={item.path} to={item.path}>
-                <Button 
-                  variant={isActive(item.path) ? "default" : "ghost"} 
-                  size="sm"
-                  className={`flex items-center gap-1 ${isActive(item.path) ? "bg-cerne-blue hover:bg-cerne-blue/90 text-white" : ""}`}
-                >
-                  <item.icon className="h-4 w-4" />
-                  <span className="hidden sm:inline-block">{item.label}</span>
-                </Button>
-              </Link>
-            ))}
-          </div>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <ThemeToggle />
-          <Button size="sm" variant="outline" onClick={signOut} className="flex items-center gap-1 border-cerne-orange hover:bg-cerne-orange hover:text-white">
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline-block">Logout</span>
-          </Button>
-        </div>
-      </div>
-      
-      {/* Mobile Navigation */}
-      <div className="md:hidden flex items-center justify-between overflow-x-auto px-2 py-1 mt-1">
-        {navItems.map((item) => (
-          <Link key={item.path} to={item.path} className="mx-1 flex-shrink-0">
-            <Button 
-              variant={isActive(item.path) ? "default" : "ghost"} 
-              size="sm"
-              className={`flex flex-col items-center gap-1 h-auto py-1 px-2 ${isActive(item.path) ? "bg-cerne-blue hover:bg-cerne-blue/90 text-white" : ""}`}
-            >
-              <item.icon className="h-4 w-4" />
-              <span className="text-xs">{item.label}</span>
+        {mobile ? (
+          <>
+            <Button variant="ghost" size="icon" onClick={toggleMenu}>
+              {isMenuOpen ? <X /> : <Menu />}
             </Button>
-          </Link>
-        ))}
+            
+            {isMenuOpen && (
+              <div className="absolute top-16 left-0 right-0 bg-background border-b p-4 flex flex-col gap-2">
+                {renderNavbar()}
+              </div>
+            )}
+          </>
+        ) : (
+          renderNavbar()
+        )}
       </div>
-    </nav>
+    </header>
   );
 }
