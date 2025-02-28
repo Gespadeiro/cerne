@@ -2,8 +2,9 @@
 import React from "react";
 import { Initiative } from "@/lib/types";
 import { format } from "date-fns";
-import { TableActionButtons } from "./table-action-buttons";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { TrashIcon } from "lucide-react";
 
 interface InitiativeRowProps {
   initiative: Initiative;
@@ -51,16 +52,18 @@ export function InitiativeRow({
       <td className="px-6 py-4 text-sm text-muted-foreground">
         {initiative.confidenceLevel !== undefined ? `${initiative.confidenceLevel}/10` : "-"}
       </td>
-      <TableActionButtons 
-        onEdit={(e) => {
-          e.stopPropagation();
-          onEdit(e);
-        }} 
-        onDelete={(e) => {
-          e.stopPropagation();
-          onDelete(e);
-        }} 
-      />
+      <td className="px-6 py-4 text-sm text-right">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(e);
+          }}
+        >
+          <TrashIcon className="h-4 w-4" />
+        </Button>
+      </td>
     </tr>
   );
 }
