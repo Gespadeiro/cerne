@@ -119,3 +119,13 @@
   width: 100% !important;
   display: block;
 }
+
+/* Add padding to main content area when using top navbar */
+main {
+  @apply px-4 py-4;
+}
+
+/* Make container full width on smaller screens */
+.container {
+  max-width: 100% !important;
+}
