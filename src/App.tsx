@@ -1,45 +1,85 @@
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-} from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import Dashboard from "./pages/Dashboard";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import CheckIn from "./pages/CheckIn";
-import KeyResultDetails from "./pages/KeyResultDetails";
-import InitiativeDetails from "./pages/InitiativeDetails";
-import Archive from "./pages/Archive";
-import KeyResultEdit from "./pages/KeyResultEdit";
-import InitiativeEdit from "./pages/InitiativeEdit";
+
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/theme-provider";
+import Dashboard from "@/pages/Dashboard";
+import Archive from "@/pages/Archive";
+import CheckIn from "@/pages/CheckIn";
+import InitiativeDetails from "@/pages/InitiativeDetails";
+import KeyResultDetails from "@/pages/KeyResultDetails";
+import Index from "@/pages/Index";
+import Auth from "@/pages/Auth";
+import { AppNavbar } from "./components/app-navbar";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/check-in" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
-          <Route path="/key-results/:id" element={<ProtectedRoute><KeyResultDetails /></ProtectedRoute>} />
-          <Route path="/key-results/:id/edit" element={<ProtectedRoute><KeyResultEdit /></ProtectedRoute>} />
-          <Route path="/initiatives/:id" element={<ProtectedRoute><InitiativeDetails /></ProtectedRoute>} />
-          <Route path="/initiatives/:id/edit" element={<ProtectedRoute><InitiativeEdit /></ProtectedRoute>} />
-          <Route path="/archive" element={<ProtectedRoute><Archive /></ProtectedRoute>} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <AuthProvider>
+        <Router>
+          <div className="flex flex-col min-h-screen">
+            <AppNavbar />
+            <main className="flex-1 w-full">
+              <Routes>
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route 
+                  path="/home" 
+                  element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/archive" 
+                  element={
+                    <ProtectedRoute>
+                      <Archive />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/check-in" 
+                  element={
+                    <ProtectedRoute>
+                      <CheckIn />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/initiatives/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <InitiativeDetails />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/key-results/:id" 
+                  element={
+                    <ProtectedRoute>
+                      <KeyResultDetails />
+                    </ProtectedRoute>
+                  } 
+                />
+              </Routes>
+            </main>
+          </div>
+          <Toaster />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
-}
-
-function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
 }
 
 export default App;
