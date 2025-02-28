@@ -14,7 +14,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppNavbar() {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -56,7 +56,7 @@ export function AppNavbar() {
         
         <div className="flex items-center space-x-2">
           <ThemeToggle />
-          <Button size="sm" variant="outline" onClick={logout} className="flex items-center gap-1">
+          <Button size="sm" variant="outline" onClick={signOut} className="flex items-center gap-1">
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline-block">Logout</span>
           </Button>
