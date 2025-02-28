@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Objective, KeyResult, Initiative } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { PencilIcon, TrashIcon } from "lucide-react";
