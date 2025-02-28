@@ -16,6 +16,13 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Objective, Initiative, KeyResult } from "@/lib/types";
 import { format } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Create a type-safe schema with context
 const createInitiativeSchema = (objectives: Objective[]) => z.object({
@@ -121,19 +128,27 @@ export function InitiativeForm({ objectives, onSubmit, initiative, submitButtonT
             <FormItem>
               <FormLabel>Objective</FormLabel>
               <FormControl>
-                <select
-                  className="w-full border rounded-md p-2 bg-background text-foreground hover:bg-muted/50"
-                  {...field}
+                <Select 
+                  value={field.value} 
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    // Reset keyResultId when objective changes
+                    form.setValue("keyResultId", "");
+                  }}
                 >
-                  <option value="" className="bg-background text-foreground">Select an objective</option>
-                  {objectives
-                    .filter((obj) => !obj.deleted)
-                    .map((obj) => (
-                      <option key={obj.id} value={obj.id} className="bg-background text-foreground">
-                        {obj.name}
-                      </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select an objective" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background">
+                    {objectives
+                      .filter((obj) => !obj.deleted)
+                      .map((obj) => (
+                        <SelectItem key={obj.id} value={obj.id}>
+                          {obj.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -149,17 +164,22 @@ export function InitiativeForm({ objectives, onSubmit, initiative, submitButtonT
               <FormItem>
                 <FormLabel>Key Result (optional)</FormLabel>
                 <FormControl>
-                  <select
-                    className="w-full border rounded-md p-2 bg-background text-foreground hover:bg-muted/50"
-                    {...field}
+                  <Select 
+                    value={field.value} 
+                    onValueChange={field.onChange}
                   >
-                    <option value="" className="bg-background text-foreground">Select a key result</option>
-                    {keyResults.map((kr) => (
-                      <option key={kr.id} value={kr.id} className="bg-background text-foreground">
-                        {kr.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a key result" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background">
+                      <SelectItem value="">None</SelectItem>
+                      {keyResults.map((kr) => (
+                        <SelectItem key={kr.id} value={kr.id}>
+                          {kr.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>
