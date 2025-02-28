@@ -16,6 +16,7 @@ const InitiativeDetails = () => {
   const [initiative, setInitiative] = useState<Initiative | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [parentObjective, setParentObjective] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -175,7 +176,19 @@ const InitiativeDetails = () => {
         </p>
       </div>
 
-      <Details initiative={initiative} />
+      <Button
+        variant="outline"
+        onClick={() => setIsDialogOpen(true)}
+        className="mb-4"
+      >
+        View Details
+      </Button>
+
+      <Details 
+        initiative={initiative} 
+        open={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+      />
     </div>
   );
 };
