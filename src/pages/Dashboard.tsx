@@ -67,6 +67,48 @@ const Dashboard = () => {
 
       if (keyResultsError) throw keyResultsError;
 
+      // Fetch latest key result check-ins for current values
+      const keyResultIds = keyResultsData.map(kr => kr.id);
+      let keyResultCurrentValues = {};
+      
+      if (keyResultIds.length > 0) {
+        const { data: checkInsData, error: checkInsError } = await supabase
+          .from('key_result_check_ins')
+          .select('*')
+          .in('key_result_id', keyResultIds)
+          .order('created_at', { ascending: false });
+        
+        if (!checkInsError && checkInsData) {
+          // Get the latest check-in value for each key result
+          checkInsData.forEach(checkIn => {
+            if (!keyResultCurrentValues[checkIn.key_result_id]) {
+              keyResultCurrentValues[checkIn.key_result_id] = checkIn.current_value;
+            }
+          });
+        }
+      }
+
+      // Fetch latest initiative check-ins for progress values
+      const initiativeIds = initiativesData.map(init => init.id);
+      let initiativeProgress = {};
+      
+      if (initiativeIds.length > 0) {
+        const { data: initiativeCheckInsData, error: initiativeCheckInsError } = await supabase
+          .from('initiative_check_ins')
+          .select('*')
+          .in('initiative_id', initiativeIds)
+          .order('created_at', { ascending: false });
+        
+        if (!initiativeCheckInsError && initiativeCheckInsData) {
+          // Get the latest progress for each initiative
+          initiativeCheckInsData.forEach(checkIn => {
+            if (!initiativeProgress[checkIn.initiative_id]) {
+              initiativeProgress[checkIn.initiative_id] = checkIn.progress_percentage;
+            }
+          });
+        }
+      }
+
       // Map the data to our frontend types
       const mappedObjectives = objectivesData.map(obj => {
         const objectiveInitiatives = initiativesData
@@ -76,10 +118,12 @@ const Dashboard = () => {
             name: init.name,
             description: init.description,
             objectiveId: init.objective_id,
+            keyResultId: init.key_result_id || undefined,
             startDate: new Date(init.start_date),
             endDate: new Date(init.end_date),
             deleted: init.deleted,
-            completed: init.completed
+            completed: init.completed,
+            progress: initiativeProgress[init.id] !== undefined ? initiativeProgress[init.id] : undefined
           }));
 
         const objectiveKeyResults = keyResultsData
@@ -93,6 +137,7 @@ const Dashboard = () => {
             endDate: new Date(kr.end_date),
             startingValue: Number(kr.starting_value),
             goalValue: Number(kr.goal_value),
+            currentValue: keyResultCurrentValues[kr.id] !== undefined ? keyResultCurrentValues[kr.id] : undefined,
             deleted: kr.deleted
           }));
 
@@ -262,6 +307,7 @@ const Dashboard = () => {
           name: data.name,
           description: data.description,
           objective_id: data.objectiveId,
+          key_result_id: data.keyResultId || null,
           start_date: new Date(data.startDate).toISOString(),
           end_date: new Date(data.endDate).toISOString(),
         })
@@ -275,6 +321,7 @@ const Dashboard = () => {
         name: newInitiative.name,
         description: newInitiative.description,
         objectiveId: newInitiative.objective_id,
+        keyResultId: newInitiative.key_result_id || undefined,
         startDate: new Date(newInitiative.start_date),
         endDate: new Date(newInitiative.end_date),
         deleted: false,

@@ -17,10 +17,12 @@ export interface Initiative {
   name: string;
   description: string;
   objectiveId: string;
+  keyResultId?: string;
   startDate: Date;
   endDate: Date;
   deleted: boolean;
   completed: boolean;
+  progress?: number;
 }
 
 export interface KeyResult {
@@ -32,6 +34,7 @@ export interface KeyResult {
   endDate: Date;
   startingValue: number;
   goalValue: number;
+  currentValue?: number;
   deleted: boolean;
 }
 

@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { Objective, Initiative } from "@/lib/types";
+import { Objective, Initiative, KeyResult } from "@/lib/types";
 import { format } from "date-fns";
 
 // Create a type-safe schema with context
@@ -22,6 +22,7 @@ const createInitiativeSchema = (objectives: Objective[]) => z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string(),
   objectiveId: z.string(),
+  keyResultId: z.string().optional(),
   startDate: z.string(),
   endDate: z.string(),
 }).refine((data) => {
@@ -66,16 +67,23 @@ export function InitiativeForm({ objectives, onSubmit, initiative, submitButtonT
       name: initiative.name,
       description: initiative.description || "",
       objectiveId: initiative.objectiveId,
+      keyResultId: initiative.keyResultId || "",
       startDate: formatDateForInput(initiative.startDate),
       endDate: formatDateForInput(initiative.endDate),
     } : {
       name: "",
       description: "",
       objectiveId: "",
+      keyResultId: "",
       startDate: "",
       endDate: "",
     },
   });
+
+  // Get the selected objective to display its key results
+  const selectedObjectiveId = form.watch("objectiveId");
+  const selectedObjective = objectives.find(obj => obj.id === selectedObjectiveId);
+  const keyResults = selectedObjective ? selectedObjective.keyResults.filter(kr => !kr.deleted) : [];
 
   return (
     <Form {...form}>
@@ -131,6 +139,34 @@ export function InitiativeForm({ objectives, onSubmit, initiative, submitButtonT
             </FormItem>
           )}
         />
+        
+        {/* Key Result selection field */}
+        {selectedObjectiveId && (
+          <FormField
+            control={form.control}
+            name="keyResultId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Key Result (optional)</FormLabel>
+                <FormControl>
+                  <select
+                    className="w-full border rounded-md p-2 bg-background text-foreground hover:bg-muted/50"
+                    {...field}
+                  >
+                    <option value="" className="bg-background text-foreground">Select a key result</option>
+                    {keyResults.map((kr) => (
+                      <option key={kr.id} value={kr.id} className="bg-background text-foreground">
+                        {kr.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
