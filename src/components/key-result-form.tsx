@@ -91,7 +91,7 @@ export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea {...field} className="h-20" /> {/* Reduced height */}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -122,66 +122,72 @@ export function KeyResultForm({ objectives, onSubmit }: KeyResultFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="startDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="endDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>End Date</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="startingValue"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Starting Value</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field}
-                  onChange={e => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="goalValue"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Goal Value</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field}
-                  onChange={e => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Date fields side by side */}
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>End Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        {/* Value fields side by side */}
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="startingValue"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Starting Value</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    {...field}
+                    onChange={e => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="goalValue"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Goal Value</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    {...field}
+                    onChange={e => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <DialogFooter>
           <Button type="submit">Create Key Result</Button>
         </DialogFooter>

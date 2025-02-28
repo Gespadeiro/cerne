@@ -70,6 +70,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Error signing out:", error);
+      } else {
+        // Force a reload to ensure all auth state is cleared across tabs
+        window.location.href = "/auth";
       }
     } catch (err) {
       console.error("Unexpected error during sign out:", err);
