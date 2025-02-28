@@ -23,6 +23,7 @@ export interface Initiative {
   deleted: boolean;
   completed: boolean;
   progress?: number;
+  confidenceLevel?: number;
 }
 
 export interface KeyResult {
@@ -35,6 +36,7 @@ export interface KeyResult {
   startingValue: number;
   goalValue: number;
   currentValue?: number;
+  confidenceLevel?: number;
   deleted: boolean;
 }
 

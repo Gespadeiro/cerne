@@ -3,7 +3,16 @@ import React from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
-import { InitiativeFormValues } from "@/lib/schemas/initiative-schema";
+
+// Define the type here directly to avoid the import error
+interface InitiativeFormValues {
+  name: string;
+  description: string;
+  objectiveId: string;
+  keyResultId?: string;
+  startDate: string;
+  endDate: string;
+}
 
 interface DateFieldsProps {
   form: UseFormReturn<InitiativeFormValues>;

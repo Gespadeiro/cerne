@@ -59,8 +59,14 @@ export function KeyResultRow({
           -
         </td>
         <TableActionButtons 
-          onEdit={onEdit} 
-          onDelete={onDelete} 
+          onEdit={(e) => {
+            e.stopPropagation();
+            onEdit(e);
+          }}
+          onDelete={(e) => {
+            e.stopPropagation();
+            onDelete(e);
+          }}
         />
       </tr>
       
