@@ -92,6 +92,7 @@ export type Database = {
           description: string | null
           end_date: string
           id: string
+          key_result_id: string | null
           name: string
           objective_id: string
           start_date: string
@@ -104,6 +105,7 @@ export type Database = {
           description?: string | null
           end_date: string
           id?: string
+          key_result_id?: string | null
           name: string
           objective_id: string
           start_date: string
@@ -116,12 +118,20 @@ export type Database = {
           description?: string | null
           end_date?: string
           id?: string
+          key_result_id?: string | null
           name?: string
           objective_id?: string
           start_date?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "initiatives_key_result_id_fkey"
+            columns: ["key_result_id"]
+            isOneToOne: false
+            referencedRelation: "key_results"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "initiatives_objective_id_fkey"
             columns: ["objective_id"]
