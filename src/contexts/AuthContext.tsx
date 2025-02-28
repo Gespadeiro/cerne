@@ -18,6 +18,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    
     // Get session on load
     const getSession = async () => {
       try {
@@ -29,12 +31,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         
-        setSession(data.session);
-        setUser(data.session?.user ?? null);
+        if (mounted) {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+        }
       } catch (err) {
         console.error("Unexpected error during session fetch:", err);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
     
@@ -44,13 +50,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         console.log("Auth state changed:", _event);
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setIsLoading(false);
+        if (mounted) {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          setIsLoading(false);
+        }
       }
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
