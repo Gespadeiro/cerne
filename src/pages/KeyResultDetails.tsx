@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { KeyResult } from "@/lib/types";
@@ -138,7 +139,7 @@ const KeyResultDetails = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 min-h-screen flex items-center justify-center">
+      <div className="w-full p-6 min-h-screen flex items-center justify-center">
         <div className="text-xl">Loading key result details...</div>
       </div>
     );
@@ -146,14 +147,14 @@ const KeyResultDetails = () => {
 
   if (!keyResult) {
     return (
-      <div className="container mx-auto p-6 min-h-screen flex items-center justify-center">
+      <div className="w-full p-6 min-h-screen flex items-center justify-center">
         <div className="text-xl">Key Result not found</div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
+    <div className="w-full p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
       <div className="flex flex-col items-center mb-12 text-center">
         <h1 className="text-4xl font-bold gradient-text mb-4">{keyResult?.name}</h1>
         <p className="text-muted-foreground max-w-2xl">{keyResult?.description}</p>
