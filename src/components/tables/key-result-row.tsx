@@ -53,6 +53,9 @@ export function KeyResultRow({
           {calculateProgress(keyResult)}
         </td>
         <td className="px-6 py-4 text-sm text-muted-foreground">
+          {keyResult.confidenceLevel !== undefined ? `${keyResult.confidenceLevel}/10` : "-"}
+        </td>
+        <td className="px-6 py-4 text-sm text-muted-foreground">
           -
         </td>
         <TableActionButtons 

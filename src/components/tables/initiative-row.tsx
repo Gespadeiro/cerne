@@ -25,7 +25,7 @@ export function InitiativeRow({
       className="hover:bg-muted/50 cursor-pointer"
       onClick={onClick}
     >
-      <td className={`px-6 py-4 text-sm pl-${indentLevel}`}>
+      <td className="px-6 py-4 text-sm" style={{ paddingLeft: `${indentLevel * 4}px` }}>
         {initiative.name}
       </td>
       <td className="px-6 py-4 text-sm text-muted-foreground">
@@ -44,11 +44,23 @@ export function InitiativeRow({
         {initiative.progress !== undefined ? `${initiative.progress}%` : "-"}
       </td>
       <td className="px-6 py-4 text-sm text-muted-foreground">
+        {initiative.confidenceLevel !== undefined ? `${initiative.confidenceLevel}/10` : "-"}
+      </td>
+      <td className="px-6 py-4 text-sm text-muted-foreground">
         <Badge variant={initiative.completed ? "success" : "secondary"}>
           {initiative.completed ? "Completed" : "In Progress"}
         </Badge>
       </td>
-      <TableActionButtons onEdit={onEdit} onDelete={onDelete} />
+      <TableActionButtons 
+        onEdit={(e) => {
+          e.stopPropagation();
+          onEdit(e);
+        }} 
+        onDelete={(e) => {
+          e.stopPropagation();
+          onDelete(e);
+        }} 
+      />
     </tr>
   );
 }

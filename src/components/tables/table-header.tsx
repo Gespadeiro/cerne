@@ -27,6 +27,9 @@ export function TableHeader({ showStatus = false }: TableHeaderProps) {
         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
           Progress
         </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Confidence
+        </th>
         {showStatus && (
           <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Status

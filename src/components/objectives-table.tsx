@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { KeyResultForm } from "@/components/key-result-form";
 import { InitiativeForm } from "@/components/initiative-form";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ObjectivesTableProps {
   objectives: Objective[];
@@ -21,6 +23,7 @@ interface ObjectivesTableProps {
 
 export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTableProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isKeyResultDialogOpen, setIsKeyResultDialogOpen] = useState(false);
   const [isInitiativeDialogOpen, setIsInitiativeDialogOpen] = useState(false);
   const [selectedKeyResult, setSelectedKeyResult] = useState<KeyResult | null>(null);
@@ -48,56 +51,137 @@ export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTabl
 
   const deleteKeyResult = async (keyResultId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Implement key result deletion logic
+    try {
+      const { error } = await supabase
+        .from('key_results')
+        .update({ deleted: true })
+        .eq('id', keyResultId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Key Result deleted",
+        description: "The key result has been moved to the garbage",
+      });
+      
+      // Update local state
+      // This is a simplified approach; you might want to implement a more sophisticated state update
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting key result",
+        description: error.message || "An error occurred while deleting the key result.",
+        variant: "destructive",
+      });
+    }
   };
 
   const deleteInitiative = async (initiativeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Implement initiative deletion logic
+    try {
+      const { error } = await supabase
+        .from('initiatives')
+        .update({ deleted: true })
+        .eq('id', initiativeId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Initiative deleted",
+        description: "The initiative has been moved to the garbage",
+      });
+      
+      // Update local state
+      // This is a simplified approach; you might want to implement a more sophisticated state update
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting initiative",
+        description: error.message || "An error occurred while deleting the initiative.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleKeyResultUpdate = async (data: any) => {
-    // Here you would implement the API call to update the key result
-    // After successful update, update the local state and close the dialog
-    setIsKeyResultDialogOpen(false);
-    setSelectedKeyResult(null);
-    // Refresh data or update local state
+    if (!selectedKeyResult) return;
+    
+    try {
+      const { error } = await supabase
+        .from('key_results')
+        .update({
+          name: data.name,
+          description: data.description,
+          objective_id: data.objectiveId,
+          start_date: new Date(data.startDate).toISOString(),
+          end_date: new Date(data.endDate).toISOString(),
+          starting_value: data.startingValue,
+          goal_value: data.goalValue,
+        })
+        .eq('id', selectedKeyResult.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Key Result updated",
+        description: "Your key result has been updated successfully",
+      });
+      
+      setIsKeyResultDialogOpen(false);
+      setSelectedKeyResult(null);
+      
+      // Refresh data
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        title: "Error updating key result",
+        description: error.message || "An error occurred while updating the key result.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInitiativeUpdate = async (data: any) => {
-    // Here you would implement the API call to update the initiative
-    // After successful update, update the local state and close the dialog
-    setIsInitiativeDialogOpen(false);
-    setSelectedInitiative(null);
-    // Refresh data or update local state
+    if (!selectedInitiative) return;
+    
+    try {
+      const { error } = await supabase
+        .from('initiatives')
+        .update({
+          name: data.name,
+          description: data.description,
+          objective_id: data.objectiveId,
+          key_result_id: data.keyResultId || null,
+          start_date: new Date(data.startDate).toISOString(),
+          end_date: new Date(data.endDate).toISOString(),
+        })
+        .eq('id', selectedInitiative.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Initiative updated",
+        description: "Your initiative has been updated successfully",
+      });
+      
+      setIsInitiativeDialogOpen(false);
+      setSelectedInitiative(null);
+      
+      // Refresh data
+      window.location.reload();
+    } catch (error: any) {
+      toast({
+        title: "Error updating initiative",
+        description: error.message || "An error occurred while updating the initiative.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Sort objectives by end date (closest first)
   const sortedObjectives = [...objectives].sort((a, b) => 
     a.endDate.getTime() - b.endDate.getTime()
   );
-
-  // Find the objective that contains the selected key result
-  const findObjectiveForKeyResult = () => {
-    if (!selectedKeyResult) return null;
-    return objectives.find(obj => obj.id === selectedKeyResult.objectiveId);
-  };
-
-  // Find all objectives for initiative form
-  const getObjectivesForForm = () => {
-    return objectives.map(obj => ({
-      id: obj.id,
-      name: obj.name,
-      description: obj.description,
-      startDate: obj.startDate,
-      endDate: obj.endDate,
-      checkInFrequency: obj.checkInFrequency,
-      deleted: obj.deleted,
-      initiatives: obj.initiatives,
-      keyResults: obj.keyResults,
-      userId: obj.userId,
-    }));
-  };
 
   return (
     <>
@@ -112,10 +196,10 @@ export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTabl
                 onEdit={() => onEdit(objective)}
                 onDelete={() => onDelete(objective.id)}
                 onKeyResultClick={navigateToKeyResult}
-                onKeyResultEdit={(keyResult, e) => editKeyResult(keyResult, e)}
+                onKeyResultEdit={editKeyResult}
                 onKeyResultDelete={deleteKeyResult}
                 onInitiativeClick={navigateToInitiative}
-                onInitiativeEdit={(initiative, e) => editInitiative(initiative, e)}
+                onInitiativeEdit={editInitiative}
                 onInitiativeDelete={deleteInitiative}
               />
             ))}
@@ -131,7 +215,7 @@ export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTabl
           </DialogHeader>
           {selectedKeyResult && (
             <KeyResultForm
-              objectives={getObjectivesForForm()}
+              objectives={objectives}
               keyResult={selectedKeyResult}
               onSubmit={handleKeyResultUpdate}
               submitButtonText="Update Key Result"
@@ -148,7 +232,7 @@ export function ObjectivesTable({ objectives, onDelete, onEdit }: ObjectivesTabl
           </DialogHeader>
           {selectedInitiative && (
             <InitiativeForm
-              objectives={getObjectivesForForm()}
+              objectives={objectives}
               initiative={selectedInitiative}
               onSubmit={handleInitiativeUpdate}
               submitButtonText="Update Initiative"

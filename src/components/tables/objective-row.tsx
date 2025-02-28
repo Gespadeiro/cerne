@@ -61,6 +61,9 @@ export function ObjectiveRow({
         <td className="px-6 py-4 text-sm text-muted-foreground">
           -
         </td>
+        <td className="px-6 py-4 text-sm text-muted-foreground">
+          -
+        </td>
         <TableActionButtons 
           onEdit={(e) => {
             e.stopPropagation();
