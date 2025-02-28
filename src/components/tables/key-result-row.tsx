@@ -3,7 +3,6 @@ import React from "react";
 import { KeyResult, Initiative } from "@/lib/types";
 import { format } from "date-fns";
 import { InitiativeRow } from "./initiative-row";
-import { calculateProgress } from "./progress-utils";
 import { TableActionButtons } from "./table-action-buttons";
 
 interface KeyResultRowProps {
@@ -27,6 +26,28 @@ export function KeyResultRow({
   onInitiativeEdit,
   onInitiativeDelete
 }: KeyResultRowProps) {
+  // Calculate progress
+  const calculateProgress = () => {
+    if (keyResult.startingValue === undefined || 
+        keyResult.goalValue === undefined || 
+        keyResult.currentValue === undefined) {
+      return "-";
+    }
+    
+    const range = keyResult.goalValue - keyResult.startingValue;
+    if (range === 0) return "0%";
+    
+    const progress = Math.min(
+      100,
+      Math.max(
+        0,
+        ((keyResult.currentValue - keyResult.startingValue) / range) * 100
+      )
+    );
+    
+    return `${Math.round(progress)}%`;
+  };
+
   return (
     <>
       {/* Key Result Row */}
@@ -38,25 +59,13 @@ export function KeyResultRow({
           {keyResult.name}
         </td>
         <td className="px-6 py-4 text-sm text-muted-foreground">
-          {format(keyResult.startDate, "MMM d, yyyy")} - {format(keyResult.endDate, "MMM d, yyyy")}
+          {calculateProgress()}
         </td>
         <td className="px-6 py-4 text-sm text-muted-foreground">
-          {keyResult.startingValue}
+          {keyResult.confidenceLevel !== undefined ? `${keyResult.confidenceLevel}%` : "-"}
         </td>
         <td className="px-6 py-4 text-sm text-muted-foreground">
           {keyResult.goalValue}
-        </td>
-        <td className="px-6 py-4 text-sm text-muted-foreground">
-          {keyResult.currentValue !== undefined ? keyResult.currentValue : "-"}
-        </td>
-        <td className="px-6 py-4 text-sm text-muted-foreground">
-          {calculateProgress(keyResult)}
-        </td>
-        <td className="px-6 py-4 text-sm text-muted-foreground">
-          {keyResult.confidenceLevel !== undefined ? `${keyResult.confidenceLevel}/10` : "-"}
-        </td>
-        <td className="px-6 py-4 text-sm text-muted-foreground">
-          -
         </td>
         <TableActionButtons 
           onEdit={(e) => {
@@ -75,7 +84,7 @@ export function KeyResultRow({
         <InitiativeRow
           key={initiative.id}
           initiative={initiative}
-          indentLevel={14}
+          indentLevel={2}
           onClick={() => onInitiativeClick(initiative.id)}
           onEdit={(e) => onInitiativeEdit(initiative, e)}
           onDelete={(e) => onInitiativeDelete(initiative.id, e)}

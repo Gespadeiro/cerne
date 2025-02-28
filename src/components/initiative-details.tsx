@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -7,11 +8,11 @@ import {
 import { Initiative } from "@/lib/types";
 import { format, isValid } from "date-fns";
 
-type InitiativeDetailsProps = {
+export interface InitiativeDetailsProps {
   initiative: Initiative | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-};
+}
 
 export function InitiativeDetails({
   initiative,

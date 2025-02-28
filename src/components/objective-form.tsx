@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,7 +82,7 @@ export function ObjectiveForm({
           description: objective.description,
           startDate: objective.startDate,
           endDate: objective.endDate,
-          checkInFrequency: objective.checkInFrequency,
+          checkInFrequency: String(objective.checkInFrequency), // Convert number to string
         }
       : {
           name: "",

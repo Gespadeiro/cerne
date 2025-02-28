@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowUpDown, Check, Circle, ExternalLink, MoreHorizontal, Trash } from "lucide-react";
+import { ArrowUpDown, Check, Circle, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,20 +13,37 @@ import {
 import { Button } from "@/components/ui/button";
 import { Objective } from "@/lib/types";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import InitiativeRow from "./initiative-row";
-import KeyResultRow from "./key-result-row";
-import TableHeader from "./table-header";
-import TableActionButtons from "./table-action-buttons";
+import { InitiativeRow } from "./initiative-row";
+import { KeyResultRow } from "./key-result-row";
+import { TableHeader } from "./table-header";
+import { TableActionButtons } from "./table-action-buttons";
 import { AddSuggestionsButton } from "../ai-suggestions/add-suggestions-button";
 
 interface ObjectiveRowProps {
   objective: Objective;
   onDelete: (id: string) => void;
   onEdit: (objective: Objective) => void;
+  onKeyResultClick?: (id: string) => void;
+  onKeyResultEdit?: (keyResult: any, e: React.MouseEvent) => void;
+  onKeyResultDelete?: (id: string, e: React.MouseEvent) => void;
+  onInitiativeClick?: (id: string) => void;
+  onInitiativeEdit?: (initiative: any, e: React.MouseEvent) => void;
+  onInitiativeDelete?: (id: string, e: React.MouseEvent) => void;
   onRefresh?: () => void;
 }
 
-export default function ObjectiveRow({ objective, onDelete, onEdit, onRefresh }: ObjectiveRowProps) {
+export default function ObjectiveRow({ 
+  objective, 
+  onDelete, 
+  onEdit, 
+  onKeyResultClick,
+  onKeyResultEdit,
+  onKeyResultDelete,
+  onInitiativeClick,
+  onInitiativeEdit,
+  onInitiativeDelete,
+  onRefresh 
+}: ObjectiveRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const navigate = useNavigate();
@@ -224,8 +241,13 @@ export default function ObjectiveRow({ objective, onDelete, onEdit, onRefresh }:
                             <KeyResultRow
                               key={keyResult.id}
                               keyResult={keyResult}
-                              onView={() => navigate(`/keyresults/${keyResult.id}`)}
-                              onEdit={() => navigate(`/keyresults/${keyResult.id}/edit`)}
+                              initiatives={objective.initiatives.filter(i => i.keyResultId === keyResult.id)}
+                              onClick={() => onKeyResultClick && onKeyResultClick(keyResult.id)}
+                              onEdit={(e) => onKeyResultEdit && onKeyResultEdit(keyResult, e)}
+                              onDelete={(e) => onKeyResultDelete && onKeyResultDelete(keyResult.id, e)}
+                              onInitiativeClick={(id) => onInitiativeClick && onInitiativeClick(id)}
+                              onInitiativeEdit={(initiative, e) => onInitiativeEdit && onInitiativeEdit(initiative, e)}
+                              onInitiativeDelete={(id, e) => onInitiativeDelete && onInitiativeDelete(id, e)}
                             />
                           ))}
                         </tbody>
@@ -234,12 +256,22 @@ export default function ObjectiveRow({ objective, onDelete, onEdit, onRefresh }:
                   ) : (
                     <div className="text-center py-8 border rounded-md bg-card">
                       <p className="text-muted-foreground mb-4">No key results added yet</p>
-                      <TableActionButtons
-                        onAdd={() => navigate(`/keyresults/create?objectiveId=${objective.id}`)}
-                        onSuggest={() => {/* Handle suggestion */}}
-                        addLabel="Add Key Result"
-                        suggestLabel="Get Suggestions"
-                      />
+                      <div className="flex justify-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/keyresults/create?objectiveId=${objective.id}`)}
+                        >
+                          Add Key Result
+                        </Button>
+                        <AddSuggestionsButton 
+                          objective={objective} 
+                          type="keyResults" 
+                          onSuggestionsAdded={handleSuggestionsAdded} 
+                          variant="outline"
+                          size="sm"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -274,26 +306,40 @@ export default function ObjectiveRow({ objective, onDelete, onEdit, onRefresh }:
                           ]}
                         />
                         <tbody>
-                          {objective.initiatives.map((initiative) => (
-                            <InitiativeRow
-                              key={initiative.id}
-                              initiative={initiative}
-                              keyResults={objective.keyResults || []}
-                              onView={() => navigate(`/initiatives/${initiative.id}`)}
-                            />
-                          ))}
+                          {objective.initiatives
+                            .filter(i => !i.keyResultId) // Show only initiatives not linked to key results
+                            .map((initiative) => (
+                              <InitiativeRow
+                                key={initiative.id}
+                                initiative={initiative}
+                                indentLevel={0}
+                                onClick={() => onInitiativeClick && onInitiativeClick(initiative.id)}
+                                onEdit={(e) => onInitiativeEdit && onInitiativeEdit(initiative, e)}
+                                onDelete={(e) => onInitiativeDelete && onInitiativeDelete(initiative.id, e)}
+                              />
+                            ))}
                         </tbody>
                       </table>
                     </div>
                   ) : (
                     <div className="text-center py-8 border rounded-md bg-card">
                       <p className="text-muted-foreground mb-4">No initiatives added yet</p>
-                      <TableActionButtons
-                        onAdd={() => navigate(`/initiatives/create?objectiveId=${objective.id}`)}
-                        onSuggest={() => {/* Handle suggestion */}}
-                        addLabel="Add Initiative"
-                        suggestLabel="Get Suggestions"
-                      />
+                      <div className="flex justify-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/initiatives/create?objectiveId=${objective.id}`)}
+                        >
+                          Add Initiative
+                        </Button>
+                        <AddSuggestionsButton 
+                          objective={objective} 
+                          type="initiatives" 
+                          onSuggestionsAdded={handleSuggestionsAdded} 
+                          variant="outline"
+                          size="sm"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
