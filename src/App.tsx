@@ -11,9 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Garbage from "@/pages/Garbage";
 import Archive from "@/pages/Archive";
 import InitiativeDetails from "@/pages/InitiativeDetails";
-import InitiativeEdit from "@/pages/InitiativeEdit";
 import KeyResultDetails from "@/pages/KeyResultDetails";
-import KeyResultEdit from "@/pages/KeyResultEdit";
 import CheckIn from "@/pages/CheckIn";
 import Chat from "@/pages/Chat";
 
@@ -55,7 +53,7 @@ function App() {
 
               <Route path="/initiatives/:id/edit" element={
                 <ProtectedRoute>
-                  <InitiativeEdit />
+                  <InitiativeDetails />
                 </ProtectedRoute>
               } />
 
@@ -67,7 +65,7 @@ function App() {
 
               <Route path="/keyresults/:id/edit" element={
                 <ProtectedRoute>
-                  <KeyResultEdit />
+                  <KeyResultDetails />
                 </ProtectedRoute>
               } />
 
