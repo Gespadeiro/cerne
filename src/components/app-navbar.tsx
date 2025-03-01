@@ -32,7 +32,7 @@ export function AppNavbar() {
     <nav className="bg-card border-b p-2 sticky top-0 z-10 w-full">
       <div className="flex items-center justify-between container px-4">
         <div className="flex items-center space-x-2">
-          <Link to="/home" className="text-xl font-bold flex items-center mr-4 text-cerne-blue hover:text-cerne-orange transition-colors">
+          <Link to="/home" className="text-xl font-bold flex items-center mr-4 gradient-text hover:opacity-90 transition-opacity">
             Cerne
           </Link>
           
