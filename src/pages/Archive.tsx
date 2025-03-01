@@ -1,4 +1,3 @@
-
 import { Objective, Initiative, KeyResult } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -250,7 +249,12 @@ const Archive = () => {
   return (
     <div className="w-full p-6 bg-background min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8">Archive</h1>
+        <div className="flex flex-col items-start mb-12">
+          <h1 className="text-4xl font-bold gradient-text mb-4">Archive</h1>
+          <p className="text-muted-foreground max-w-2xl">
+            Review and manage your archived objectives, key results, and initiatives. Restore items or delete them permanently.
+          </p>
+        </div>
         <Tabs defaultValue="objectives" className="w-full">
           <TabsList className="mb-4">
             <TabsTrigger value="objectives">Objectives</TabsTrigger>

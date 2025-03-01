@@ -120,7 +120,12 @@ const Index = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-4xl font-bold gradient-text mb-8">Welcome to Cerne</h1>
+      <div className="flex flex-col items-start mb-12">
+        <h1 className="text-4xl font-bold gradient-text mb-4">Welcome to Cerne</h1>
+        <p className="text-muted-foreground max-w-2xl">
+          Your personal OKR management system. Track your objectives, key results, and initiatives to achieve your goals.
+        </p>
+      </div>
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           {[...Array(5)].map((_, i) => (
