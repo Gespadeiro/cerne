@@ -13,8 +13,11 @@ interface KeyResultSelectProps {
 }
 
 export function KeyResultSelect({ form, selectedObjectiveId, objectives }: KeyResultSelectProps) {
+  // Find the selected objective safely
   const selectedObjective = objectives.find(obj => obj.id === selectedObjectiveId);
-  const keyResults = selectedObjective ? selectedObjective.keyResults.filter(kr => !kr.deleted) : [];
+  
+  // Get key results only if the objective exists
+  const keyResults = selectedObjective?.keyResults?.filter(kr => !kr.deleted) || [];
   
   if (!selectedObjectiveId) {
     return null;
