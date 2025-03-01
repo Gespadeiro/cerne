@@ -38,6 +38,7 @@ const KeyResultDetails = () => {
 
       if (error) throw error;
 
+      // Format the data correctly mapping from database columns to our TypeScript type
       setKeyResult({
         id: data.id,
         name: data.name,
@@ -47,8 +48,8 @@ const KeyResultDetails = () => {
         endDate: new Date(data.end_date),
         startingValue: Number(data.starting_value),
         goalValue: Number(data.goal_value),
-        currentValue: data.current_value !== null ? Number(data.current_value) : undefined,
-        confidenceLevel: data.confidence_level !== null ? Number(data.confidence_level) : undefined,
+        currentValue: undefined, // This will be updated from check-ins if available
+        confidenceLevel: undefined, // This will be updated from check-ins if available
         deleted: data.deleted
       });
     } catch (error: any) {
@@ -72,6 +73,7 @@ const KeyResultDetails = () => {
           current_value,
           confidence_level,
           notes,
+          check_in_id,
           check_ins(date)
         `)
         .eq('key_result_id', id)
@@ -90,6 +92,18 @@ const KeyResultDetails = () => {
       }));
 
       setCheckIns(formattedCheckIns);
+
+      // Update the current value and confidence level of the key result if we have check-ins
+      if (formattedCheckIns.length > 0) {
+        setKeyResult(prevState => {
+          if (!prevState) return null;
+          return {
+            ...prevState,
+            currentValue: formattedCheckIns[0].currentValue,
+            confidenceLevel: formattedCheckIns[0].confidenceLevel
+          };
+        });
+      }
     } catch (error: any) {
       console.error("Error fetching check-ins:", error);
       toast({
@@ -143,7 +157,7 @@ const KeyResultDetails = () => {
         <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold">{keyResult.name}</h1>
+        <h1 className="text-3xl font-bold">{keyResult?.name}</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -155,29 +169,29 @@ const KeyResultDetails = () => {
           <CardContent className="space-y-4">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
-              <p>{keyResult.description || "No description provided."}</p>
+              <p>{keyResult?.description || "No description provided."}</p>
             </div>
             
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Timeline</h3>
               <p>
-                {format(keyResult.startDate, "MMM d, yyyy")} - {format(keyResult.endDate, "MMM d, yyyy")}
+                {keyResult && format(keyResult.startDate, "MMM d, yyyy")} - {keyResult && format(keyResult.endDate, "MMM d, yyyy")}
               </p>
             </div>
             
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Starting Value</h3>
-                <p className="text-lg font-medium">{keyResult.startingValue}</p>
+                <p className="text-lg font-medium">{keyResult?.startingValue}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Goal Value</h3>
-                <p className="text-lg font-medium">{keyResult.goalValue}</p>
+                <p className="text-lg font-medium">{keyResult?.goalValue}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Current Value</h3>
                 <p className="text-lg font-medium">
-                  {keyResult.currentValue !== undefined ? keyResult.currentValue : "Not set"}
+                  {keyResult?.currentValue !== undefined ? keyResult.currentValue : "Not set"}
                 </p>
               </div>
             </div>
