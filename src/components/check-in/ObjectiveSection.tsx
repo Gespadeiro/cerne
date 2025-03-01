@@ -64,7 +64,7 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
           <TabsTrigger value="initiatives" className="px-8">Initiatives</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="key-results" className="space-y-8 w-full">
+        <TabsContent value="key-results">
           <KeyResultsTable
             objective={objective}
             keyResultValues={keyResultValues}
@@ -77,7 +77,7 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
           />
         </TabsContent>
         
-        <TabsContent value="initiatives" className="space-y-8 w-full">
+        <TabsContent value="initiatives">
           <InitiativesTable
             objective={objective}
             initiativeStatus={initiativeStatus}
