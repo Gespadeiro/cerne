@@ -60,6 +60,7 @@ export function InitiativeRow({
           e.stopPropagation();
           onDelete(e);
         }} 
+        hideEdit={true}
       />
     </tr>
   );
