@@ -1,43 +1,19 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Objective, CheckIn as CheckInType, KeyResultCheckIn, InitiativeCheckIn } from "@/lib/types";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Textarea } from "@/components/ui/textarea";
 
-interface LastCheckInValues {
-  [keyResultId: string]: number;
-}
-
-interface LastInitiativeValues {
-  [initiativeId: string]: {
-    status: string;
-    percentage: number;
-  };
-}
+// Import the new components
+import { DataFetcher } from "@/components/check-in/DataFetcher";
+import { CheckInHeader } from "@/components/check-in/CheckInHeader";
+import { NoObjectivesMessage } from "@/components/check-in/NoObjectivesMessage";
+import { ObjectiveSection } from "@/components/check-in/ObjectiveSection";
 
 const CheckIn = () => {
-  const [objectives, setObjectives] = useState<Objective[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [keyResultValues, setKeyResultValues] = useState<Record<string, string>>({});
   const [keyResultConfidence, setKeyResultConfidence] = useState<Record<string, string>>({});
   const [keyResultNotes, setKeyResultNotes] = useState<Record<string, string>>({});
@@ -45,170 +21,8 @@ const CheckIn = () => {
   const [initiativeConfidence, setInitiativeConfidence] = useState<Record<string, string>>({});
   const [initiativePercentage, setInitiativePercentage] = useState<Record<string, string>>({});
   const [initiativeNotes, setInitiativeNotes] = useState<Record<string, string>>({});
-  const [lastKeyResultValues, setLastKeyResultValues] = useState<LastCheckInValues>({});
-  const [lastInitiativeValues, setLastInitiativeValues] = useState<LastInitiativeValues>({});
   const { toast } = useToast();
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      fetchObjectives();
-    }
-  }, [user]);
-
-  const fetchObjectives = async () => {
-    try {
-      setIsLoading(true);
-
-      // Fetch objectives
-      const { data: objectivesData, error: objectivesError } = await supabase
-        .from('objectives')
-        .select('*')
-        .eq('deleted', false)
-        .order('created_at', { ascending: false });
-
-      if (objectivesError) throw objectivesError;
-
-      // Fetch initiatives for these objectives
-      const { data: initiativesData, error: initiativesError } = await supabase
-        .from('initiatives')
-        .select('*')
-        .eq('deleted', false)
-        .in('objective_id', objectivesData.map(obj => obj.id));
-
-      if (initiativesError) throw initiativesError;
-
-      // Fetch key results for these objectives
-      const { data: keyResultsData, error: keyResultsError } = await supabase
-        .from('key_results')
-        .select('*')
-        .eq('deleted', false)
-        .in('objective_id', objectivesData.map(obj => obj.id));
-
-      if (keyResultsError) throw keyResultsError;
-
-      // Map the data to our frontend types
-      const mappedObjectives = objectivesData.map(obj => {
-        const objectiveInitiatives = initiativesData
-          .filter(init => init.objective_id === obj.id)
-          .map(init => ({
-            id: init.id,
-            name: init.name,
-            description: init.description,
-            objectiveId: init.objective_id,
-            startDate: new Date(init.start_date),
-            endDate: new Date(init.end_date),
-            deleted: init.deleted,
-            completed: init.completed
-          }));
-
-        const objectiveKeyResults = keyResultsData
-          .filter(kr => kr.objective_id === obj.id)
-          .map(kr => ({
-            id: kr.id,
-            name: kr.name,
-            description: kr.description,
-            objectiveId: kr.objective_id,
-            startDate: new Date(kr.start_date),
-            endDate: new Date(kr.end_date),
-            startingValue: Number(kr.starting_value),
-            goalValue: Number(kr.goal_value),
-            deleted: kr.deleted
-          }));
-
-        return {
-          id: obj.id,
-          name: obj.name,
-          description: obj.description,
-          startDate: new Date(obj.start_date),
-          endDate: new Date(obj.end_date),
-          checkInFrequency: obj.check_in_frequency,
-          deleted: obj.deleted,
-          initiatives: objectiveInitiatives,
-          keyResults: objectiveKeyResults,
-          userId: obj.user_id
-        };
-      });
-
-      setObjectives(mappedObjectives);
-      
-      // Fetch the latest check-in values for all key results
-      if (keyResultsData.length > 0) {
-        fetchLatestKeyResultValues(keyResultsData.map(kr => kr.id));
-      }
-
-      // Fetch the latest check-in values for all initiatives
-      if (initiativesData.length > 0) {
-        fetchLatestInitiativeValues(initiativesData.map(init => init.id));
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error fetching data",
-        description: error.message || "An error occurred while fetching your objectives.",
-        variant: "destructive",
-      });
-      console.error("Error fetching data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchLatestKeyResultValues = async (keyResultIds: string[]) => {
-    try {
-      // For each key result, get the latest check-in
-      const { data, error } = await supabase
-        .from('key_result_check_ins')
-        .select('*')
-        .in('key_result_id', keyResultIds)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Create a map of key result ID to its latest value
-      const latestValues: LastCheckInValues = {};
-      
-      // Group by key_result_id and take the most recent
-      data?.forEach(checkIn => {
-        if (!latestValues[checkIn.key_result_id]) {
-          latestValues[checkIn.key_result_id] = Number(checkIn.current_value);
-        }
-      });
-
-      setLastKeyResultValues(latestValues);
-    } catch (error: any) {
-      console.error("Error fetching latest key result values:", error);
-    }
-  };
-
-  const fetchLatestInitiativeValues = async (initiativeIds: string[]) => {
-    try {
-      // For each initiative, get the latest check-in
-      const { data, error } = await supabase
-        .from('initiative_check_ins')
-        .select('*')
-        .in('initiative_id', initiativeIds)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Create a map of initiative ID to its latest value
-      const latestValues: LastInitiativeValues = {};
-      
-      // Group by initiative_id and take the most recent
-      data?.forEach(checkIn => {
-        if (!latestValues[checkIn.initiative_id]) {
-          latestValues[checkIn.initiative_id] = {
-            status: checkIn.progress_status,
-            percentage: Number(checkIn.progress_percentage || 0)
-          };
-        }
-      });
-
-      setLastInitiativeValues(latestValues);
-    } catch (error: any) {
-      console.error("Error fetching latest initiative values:", error);
-    }
-  };
 
   const handleSubmitCheckIn = async () => {
     if (!user) return;
@@ -243,13 +57,6 @@ const CheckIn = () => {
           .insert(keyResultCheckIns);
 
         if (krCheckInError) throw krCheckInError;
-        
-        // Update the lastKeyResultValues with the new check-in values
-        const newLastValues = { ...lastKeyResultValues };
-        keyResultCheckIns.forEach(checkIn => {
-          newLastValues[checkIn.key_result_id] = checkIn.current_value;
-        });
-        setLastKeyResultValues(newLastValues);
       }
 
       // Process initiative check-ins
@@ -270,16 +77,6 @@ const CheckIn = () => {
           .insert(initiativeCheckIns);
 
         if (initCheckInError) throw initCheckInError;
-
-        // Update the lastInitiativeValues with the new check-in values
-        const newLastValues = { ...lastInitiativeValues };
-        initiativeCheckIns.forEach(checkIn => {
-          newLastValues[checkIn.initiative_id] = {
-            status: checkIn.progress_status,
-            percentage: Number(checkIn.progress_percentage || 0)
-          };
-        });
-        setLastInitiativeValues(newLastValues);
       }
 
       toast({
@@ -305,244 +102,67 @@ const CheckIn = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="w-full p-6 min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading your objectives...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
       <div className="w-full">
-        <div className="flex flex-col items-center mb-12 text-center">
-          <h1 className="text-4xl font-bold gradient-text mb-4">Progress Check-in</h1>
-          <p className="text-muted-foreground max-w-2xl">
-            Track your journey, celebrate progress, and stay committed to your goals.
-            Regular check-ins help maintain momentum and ensure success.
-          </p>
-        </div>
+        <CheckInHeader />
         
         <div className="glass-card p-6 w-full">
-          <Tabs defaultValue="key-results" className="mt-2 w-full">
-            <TabsList className="w-full flex justify-center mb-6">
-              <TabsTrigger value="key-results" className="px-8">Key Results</TabsTrigger>
-              <TabsTrigger value="initiatives" className="px-8">Initiatives</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="key-results" className="space-y-8 w-full">
-              {objectives.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-lg text-muted-foreground">You don't have any objectives yet.</p>
-                  <p className="text-muted-foreground">Go to the Dashboard to create your first objective.</p>
-                </div>
-              ) : (
-                objectives.map(objective => (
-                  <div key={objective.id} className="mb-8 w-full">
-                    <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
-                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
-                      <div className="w-full">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="font-semibold w-[250px]">Key Result</TableHead>
-                              <TableHead className="font-semibold w-[120px]">Starting Value</TableHead>
-                              <TableHead className="font-semibold w-[120px]">Current Value</TableHead>
-                              <TableHead className="font-semibold w-[120px]">Goal Value</TableHead>
-                              <TableHead className="font-semibold w-[150px]">Check-in Value</TableHead>
-                              <TableHead className="font-semibold w-[150px]">Confidence Level</TableHead>
-                              <TableHead className="font-semibold">Observations</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {objective.keyResults
-                              .filter(kr => !kr.deleted)
-                              .map(kr => (
-                                <TableRow key={kr.id}>
-                                  <TableCell className="font-medium">{kr.name}</TableCell>
-                                  <TableCell>{kr.startingValue}</TableCell>
-                                  <TableCell>{lastKeyResultValues[kr.id] !== undefined ? lastKeyResultValues[kr.id] : kr.startingValue}</TableCell>
-                                  <TableCell>{kr.goalValue}</TableCell>
-                                  <TableCell>
-                                    <Input 
-                                      type="text" 
-                                      placeholder="Enter value"
-                                      className="w-full bg-background/50"
-                                      value={keyResultValues[kr.id] || ''}
-                                      onChange={(e) => setKeyResultValues({
-                                        ...keyResultValues,
-                                        [kr.id]: e.target.value
-                                      })}
-                                    />
-                                  </TableCell>
-                                  <TableCell>
-                                    <Select
-                                      value={keyResultConfidence[kr.id]}
-                                      onValueChange={(value) => setKeyResultConfidence({
-                                        ...keyResultConfidence,
-                                        [kr.id]: value
-                                      })}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="1-9" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
-                                          <SelectItem key={value} value={value.toString()}>
-                                            {value}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Textarea 
-                                      placeholder="Add notes or observations"
-                                      className="w-full bg-background/50"
-                                      value={keyResultNotes[kr.id] || ''}
-                                      onChange={(e) => setKeyResultNotes({
-                                        ...keyResultNotes,
-                                        [kr.id]: e.target.value
-                                      })}
-                                    />
-                                  </TableCell>
-                                </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
+          <DataFetcher>
+            {({ objectives, isLoading, lastKeyResultValues, lastInitiativeValues }) => {
+              if (isLoading) {
+                return (
+                  <div className="w-full p-6 min-h-screen flex items-center justify-center">
+                    <div className="text-xl">Loading your objectives...</div>
                   </div>
-              ))
-              )}
-            </TabsContent>
-
-            <TabsContent value="initiatives" className="space-y-8 w-full">
-              {objectives.length === 0 ? (
-                <div className="text-center py-10">
-                  <p className="text-lg text-muted-foreground">You don't have any objectives yet.</p>
-                  <p className="text-muted-foreground">Go to the Dashboard to create your first objective.</p>
-                </div>
-              ) : (
-                objectives.map(objective => (
-                  <div key={objective.id} className="mb-8 w-full">
-                    <h2 className="text-2xl font-bold mb-4 gradient-text">{objective.name}</h2>
-                    <div className="rounded-xl border bg-card/50 backdrop-blur-sm shadow-sm w-full">
-                      <div className="w-full">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="font-semibold w-[25%]">Initiative</TableHead>
-                              <TableHead className="font-semibold w-[15%]">Progress</TableHead>
-                              <TableHead className="font-semibold w-[15%]">Current Percentage</TableHead>
-                              <TableHead className="font-semibold w-[15%]">Check-in Percentage</TableHead>
-                              <TableHead className="font-semibold w-[15%]">Confidence Level</TableHead>
-                              <TableHead className="font-semibold">Observations</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {objective.initiatives
-                              .filter(initiative => !initiative.deleted)
-                              .map(initiative => (
-                                <TableRow key={initiative.id}>
-                                  <TableCell className="font-medium">{initiative.name}</TableCell>
-                                  <TableCell>
-                                    <Select
-                                      value={initiativeStatus[initiative.id]}
-                                      onValueChange={(value) => setInitiativeStatus({
-                                        ...initiativeStatus,
-                                        [initiative.id]: value
-                                      })}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select progress" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="not-started">Not Started</SelectItem>
-                                        <SelectItem value="in-progress">In Progress</SelectItem>
-                                        <SelectItem value="completed">Completed</SelectItem>
-                                        <SelectItem value="blocked">Blocked</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </TableCell>
-                                  <TableCell>
-                                    {lastInitiativeValues[initiative.id] ? 
-                                      `${lastInitiativeValues[initiative.id].percentage}%` : 
-                                      "0%"}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Input 
-                                      type="number" 
-                                      placeholder="0-100"
-                                      className="w-full bg-background/50"
-                                      min="0"
-                                      max="100"
-                                      value={initiativePercentage[initiative.id] || ''}
-                                      onChange={(e) => {
-                                        const value = Math.min(100, Math.max(0, Number(e.target.value) || 0));
-                                        setInitiativePercentage({
-                                          ...initiativePercentage,
-                                          [initiative.id]: value.toString()
-                                        });
-                                      }}
-                                    />
-                                  </TableCell>
-                                  <TableCell>
-                                    <Select
-                                      value={initiativeConfidence[initiative.id]}
-                                      onValueChange={(value) => setInitiativeConfidence({
-                                        ...initiativeConfidence,
-                                        [initiative.id]: value
-                                      })}
-                                    >
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="1-9" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(value => (
-                                          <SelectItem key={value} value={value.toString()}>
-                                            {value}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Textarea 
-                                      placeholder="Add notes or observations"
-                                      className="w-full bg-background/50"
-                                      value={initiativeNotes[initiative.id] || ''}
-                                      onChange={(e) => setInitiativeNotes({
-                                        ...initiativeNotes,
-                                        [initiative.id]: e.target.value
-                                      })}
-                                    />
-                                  </TableCell>
-                                </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
-                  </div>
-              ))
-              )}
-            </TabsContent>
-          </Tabs>
-
-          <div className="mt-8 flex justify-center">
-            <Button 
-              size="lg" 
-              onClick={handleSubmitCheckIn}
-              disabled={
-                Object.keys(keyResultValues).length === 0 && 
-                Object.keys(initiativeStatus).length === 0
+                );
               }
-            >
-              Submit Check-in
-            </Button>
-          </div>
+
+              if (objectives.length === 0) {
+                return <NoObjectivesMessage />;
+              }
+
+              return (
+                <>
+                  {objectives.map(objective => (
+                    <ObjectiveSection
+                      key={objective.id}
+                      objective={objective}
+                      keyResultValues={keyResultValues}
+                      setKeyResultValues={setKeyResultValues}
+                      keyResultConfidence={keyResultConfidence}
+                      setKeyResultConfidence={setKeyResultConfidence}
+                      keyResultNotes={keyResultNotes}
+                      setKeyResultNotes={setKeyResultNotes}
+                      initiativeStatus={initiativeStatus}
+                      setInitiativeStatus={setInitiativeStatus}
+                      initiativeConfidence={initiativeConfidence}
+                      setInitiativeConfidence={setInitiativeConfidence}
+                      initiativePercentage={initiativePercentage}
+                      setInitiativePercentage={setInitiativePercentage}
+                      initiativeNotes={initiativeNotes}
+                      setInitiativeNotes={setInitiativeNotes}
+                      lastKeyResultValues={lastKeyResultValues}
+                      lastInitiativeValues={lastInitiativeValues}
+                    />
+                  ))}
+
+                  <div className="mt-8 flex justify-center">
+                    <Button 
+                      size="lg" 
+                      onClick={handleSubmitCheckIn}
+                      disabled={
+                        Object.keys(keyResultValues).length === 0 && 
+                        Object.keys(initiativeStatus).length === 0
+                      }
+                    >
+                      Submit Check-in
+                    </Button>
+                  </div>
+                </>
+              );
+            }}
+          </DataFetcher>
         </div>
       </div>
     </div>
