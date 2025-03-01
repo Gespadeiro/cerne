@@ -25,7 +25,7 @@ export function InitiativeRow({
       className="hover:bg-muted/50 cursor-pointer"
       onClick={onClick}
     >
-      <td className="px-6 py-4 text-sm" style={{ paddingLeft: `${indentLevel * 4}px` }}>
+      <td className="px-6 py-4 text-sm" style={{ paddingLeft: `${(indentLevel + 1) * 16}px` }}>
         {initiative.name}
       </td>
       <td className="px-6 py-4 text-sm text-muted-foreground">
@@ -60,7 +60,7 @@ export function InitiativeRow({
           e.stopPropagation();
           onDelete(e);
         }} 
-        hideEdit={true}
+        hideEdit={false}
       />
     </tr>
   );

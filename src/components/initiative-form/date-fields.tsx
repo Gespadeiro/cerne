@@ -11,7 +11,7 @@ interface DateFieldsProps {
 
 export function DateFields({ form }: DateFieldsProps) {
   return (
-    <>
+    <div className="grid grid-cols-2 gap-4">
       <FormField
         control={form.control}
         name="startDate"
@@ -38,6 +38,6 @@ export function DateFields({ form }: DateFieldsProps) {
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 }
