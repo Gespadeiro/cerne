@@ -12,6 +12,9 @@ interface ObjectiveSelectProps {
 }
 
 export function ObjectiveSelect({ form, objectives }: ObjectiveSelectProps) {
+  // Filter non-deleted objectives
+  const activeObjectives = objectives.filter(obj => !obj.deleted);
+  
   return (
     <FormField
       control={form.control}
@@ -21,24 +24,23 @@ export function ObjectiveSelect({ form, objectives }: ObjectiveSelectProps) {
           <FormLabel>Objective</FormLabel>
           <FormControl>
             <Select 
-              value={field.value} 
+              value={field.value || ""} 
               onValueChange={(value) => {
+                // Set objective ID
                 field.onChange(value);
                 // Reset keyResultId when objective changes
                 form.setValue("keyResultId", "");
               }}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-background">
                 <SelectValue placeholder="Select an objective" />
               </SelectTrigger>
               <SelectContent className="bg-background">
-                {objectives
-                  .filter((obj) => !obj.deleted)
-                  .map((obj) => (
-                    <SelectItem key={obj.id} value={obj.id}>
-                      {obj.name}
-                    </SelectItem>
-                  ))}
+                {activeObjectives.map((obj) => (
+                  <SelectItem key={obj.id} value={obj.id}>
+                    {obj.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </FormControl>

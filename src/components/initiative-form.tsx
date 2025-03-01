@@ -11,6 +11,7 @@ import { BasicFields } from "@/components/initiative-form/basic-fields";
 import { ObjectiveSelect } from "@/components/initiative-form/objective-select";
 import { KeyResultSelect } from "@/components/initiative-form/key-result-select";
 import { DateFields } from "@/components/initiative-form/date-fields";
+import { useState, useEffect } from "react";
 
 type InitiativeFormProps = {
   objectives: Objective[];
@@ -50,16 +51,30 @@ export function InitiativeForm({
     },
   });
 
-  // Get the selected objective to display its key results
+  // Get the selected objective ID to display its key results
   const selectedObjectiveId = form.watch("objectiveId");
+  
+  // Show key result select only if an objective is selected
+  const showKeyResultSelect = !!selectedObjectiveId;
+
+  const handleFormSubmit = (data: InitiativeFormValues) => {
+    // Ensure the data is properly formatted
+    const formattedData = {
+      ...data,
+      keyResultId: data.keyResultId || undefined, // Convert empty string to undefined
+    };
+    
+    onSubmit(formattedData);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         <BasicFields form={form} />
+        
         <ObjectiveSelect form={form} objectives={objectives} />
         
-        {selectedObjectiveId && (
+        {showKeyResultSelect && (
           <KeyResultSelect 
             form={form} 
             selectedObjectiveId={selectedObjectiveId} 

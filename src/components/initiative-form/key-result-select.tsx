@@ -13,15 +13,16 @@ interface KeyResultSelectProps {
 }
 
 export function KeyResultSelect({ form, selectedObjectiveId, objectives }: KeyResultSelectProps) {
-  // Find the selected objective safely
-  const selectedObjective = objectives.find(obj => obj.id === selectedObjectiveId);
-  
-  // Get key results only if the objective exists
-  const keyResults = selectedObjective?.keyResults?.filter(kr => !kr.deleted) || [];
-  
+  // Return early if no objective is selected
   if (!selectedObjectiveId) {
     return null;
   }
+  
+  // Find the selected objective
+  const selectedObjective = objectives.find(obj => obj.id === selectedObjectiveId);
+  
+  // Get key results only if the objective exists and has keyResults array
+  const keyResults = selectedObjective?.keyResults?.filter(kr => !kr.deleted) || [];
   
   return (
     <FormField
@@ -32,10 +33,10 @@ export function KeyResultSelect({ form, selectedObjectiveId, objectives }: KeyRe
           <FormLabel>Key Result (optional)</FormLabel>
           <FormControl>
             <Select 
-              value={field.value} 
+              value={field.value || ""} 
               onValueChange={field.onChange}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full bg-background">
                 <SelectValue placeholder="Select a key result" />
               </SelectTrigger>
               <SelectContent className="bg-background">
