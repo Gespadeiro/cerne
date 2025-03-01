@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import type { Objective, CheckIn as CheckInType, KeyResultCheckIn, InitiativeCheckIn } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -5,12 +6,22 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-// Import the new components
+// Import the components
 import { DataFetcher } from "@/components/check-in/DataFetcher";
 import { CheckInHeader } from "@/components/check-in/CheckInHeader";
 import { NoObjectivesMessage } from "@/components/check-in/NoObjectivesMessage";
 import { ObjectiveSection } from "@/components/check-in/ObjectiveSection";
+import { KeyResultRow } from "@/components/check-in/KeyResultRow";
+import { InitiativeRow } from "@/components/check-in/InitiativeRow";
 
 const CheckIn = () => {
   const [keyResultValues, setKeyResultValues] = useState<Record<string, string>>({});
@@ -20,6 +31,7 @@ const CheckIn = () => {
   const [initiativeConfidence, setInitiativeConfidence] = useState<Record<string, string>>({});
   const [initiativePercentage, setInitiativePercentage] = useState<Record<string, string>>({});
   const [initiativeNotes, setInitiativeNotes] = useState<Record<string, string>>({});
+  const [activeTab, setActiveTab] = useState("key-results");
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -103,65 +115,195 @@ const CheckIn = () => {
 
   return (
     <div className="w-full p-6 min-h-screen bg-gradient-to-b from-background to-accent/20">
-      <div className="w-full">
-        <CheckInHeader />
+      <CheckInHeader />
+      
+      <Tabs defaultValue="key-results" className="mt-2 w-full" onValueChange={setActiveTab}>
+        <TabsList className="w-full flex justify-center mb-6">
+          <TabsTrigger value="key-results" className="px-8">Key Results</TabsTrigger>
+          <TabsTrigger value="initiatives" className="px-8">Initiatives</TabsTrigger>
+        </TabsList>
         
-        <DataFetcher>
-          {({ objectives, isLoading, lastKeyResultValues, lastInitiativeValues }) => {
-            if (isLoading) {
+        <TabsContent value="key-results">
+          <DataFetcher>
+            {({ objectives, isLoading, lastKeyResultValues, lastInitiativeValues }) => {
+              if (isLoading) {
+                return (
+                  <div className="w-full flex items-center justify-center">
+                    <div className="text-xl">Loading your objectives...</div>
+                  </div>
+                );
+              }
+
+              if (objectives.length === 0) {
+                return <NoObjectivesMessage />;
+              }
+
               return (
-                <div className="w-full p-6 min-h-screen flex items-center justify-center">
-                  <div className="text-xl">Loading your objectives...</div>
-                </div>
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-semibold w-[250px]">Key Result</TableHead>
+                        <TableHead className="font-semibold w-[120px]">Starting Value</TableHead>
+                        <TableHead className="font-semibold w-[120px]">Current Value</TableHead>
+                        <TableHead className="font-semibold w-[120px]">Goal Value</TableHead>
+                        <TableHead className="font-semibold w-[150px]">Check-in Value</TableHead>
+                        <TableHead className="font-semibold w-[150px]">Confidence Level</TableHead>
+                        <TableHead className="font-semibold">Observations</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {objectives.map(objective => (
+                        <React.Fragment key={objective.id}>
+                          <ObjectiveSection
+                            objective={objective}
+                            keyResultValues={keyResultValues}
+                            setKeyResultValues={setKeyResultValues}
+                            keyResultConfidence={keyResultConfidence}
+                            setKeyResultConfidence={setKeyResultConfidence}
+                            keyResultNotes={keyResultNotes}
+                            setKeyResultNotes={setKeyResultNotes}
+                            initiativeStatus={initiativeStatus}
+                            setInitiativeStatus={setInitiativeStatus}
+                            initiativeConfidence={initiativeConfidence}
+                            setInitiativeConfidence={setInitiativeConfidence}
+                            initiativePercentage={initiativePercentage}
+                            setInitiativePercentage={setInitiativePercentage}
+                            initiativeNotes={initiativeNotes}
+                            setInitiativeNotes={setInitiativeNotes}
+                            lastKeyResultValues={lastKeyResultValues}
+                            lastInitiativeValues={lastInitiativeValues}
+                            activeTab={activeTab}
+                          />
+                          {objective.keyResults
+                            .filter(kr => !kr.deleted)
+                            .map(keyResult => (
+                              <KeyResultRow
+                                key={keyResult.id}
+                                keyResult={keyResult}
+                                keyResultValues={keyResultValues}
+                                setKeyResultValues={setKeyResultValues}
+                                keyResultConfidence={keyResultConfidence}
+                                setKeyResultConfidence={setKeyResultConfidence}
+                                keyResultNotes={keyResultNotes}
+                                setKeyResultNotes={setKeyResultNotes}
+                                lastKeyResultValue={lastKeyResultValues[keyResult.id]}
+                              />
+                          ))}
+                        </React.Fragment>
+                      ))}
+                    </TableBody>
+                  </Table>
+
+                  <div className="mt-8 flex justify-center">
+                    <Button 
+                      size="lg" 
+                      onClick={handleSubmitCheckIn}
+                      disabled={
+                        Object.keys(keyResultValues).length === 0 && 
+                        Object.keys(initiativeStatus).length === 0
+                      }
+                    >
+                      Submit Check-in
+                    </Button>
+                  </div>
+                </>
               );
-            }
+            }}
+          </DataFetcher>
+        </TabsContent>
+        
+        <TabsContent value="initiatives">
+          <DataFetcher>
+            {({ objectives, isLoading, lastKeyResultValues, lastInitiativeValues }) => {
+              if (isLoading) {
+                return (
+                  <div className="w-full flex items-center justify-center">
+                    <div className="text-xl">Loading your objectives...</div>
+                  </div>
+                );
+              }
 
-            if (objectives.length === 0) {
-              return <NoObjectivesMessage />;
-            }
+              if (objectives.length === 0) {
+                return <NoObjectivesMessage />;
+              }
 
-            return (
-              <>
-                {objectives.map(objective => (
-                  <ObjectiveSection
-                    key={objective.id}
-                    objective={objective}
-                    keyResultValues={keyResultValues}
-                    setKeyResultValues={setKeyResultValues}
-                    keyResultConfidence={keyResultConfidence}
-                    setKeyResultConfidence={setKeyResultConfidence}
-                    keyResultNotes={keyResultNotes}
-                    setKeyResultNotes={setKeyResultNotes}
-                    initiativeStatus={initiativeStatus}
-                    setInitiativeStatus={setInitiativeStatus}
-                    initiativeConfidence={initiativeConfidence}
-                    setInitiativeConfidence={setInitiativeConfidence}
-                    initiativePercentage={initiativePercentage}
-                    setInitiativePercentage={setInitiativePercentage}
-                    initiativeNotes={initiativeNotes}
-                    setInitiativeNotes={setInitiativeNotes}
-                    lastKeyResultValues={lastKeyResultValues}
-                    lastInitiativeValues={lastInitiativeValues}
-                  />
-                ))}
+              return (
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-semibold w-[25%]">Initiative</TableHead>
+                        <TableHead className="font-semibold w-[15%]">Progress</TableHead>
+                        <TableHead className="font-semibold w-[15%]">Current Percentage</TableHead>
+                        <TableHead className="font-semibold w-[15%]">Check-in Percentage</TableHead>
+                        <TableHead className="font-semibold w-[15%]">Confidence Level</TableHead>
+                        <TableHead className="font-semibold">Observations</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {objectives.map(objective => (
+                        <React.Fragment key={objective.id}>
+                          <ObjectiveSection
+                            objective={objective}
+                            keyResultValues={keyResultValues}
+                            setKeyResultValues={setKeyResultValues}
+                            keyResultConfidence={keyResultConfidence}
+                            setKeyResultConfidence={setKeyResultConfidence}
+                            keyResultNotes={keyResultNotes}
+                            setKeyResultNotes={setKeyResultNotes}
+                            initiativeStatus={initiativeStatus}
+                            setInitiativeStatus={setInitiativeStatus}
+                            initiativeConfidence={initiativeConfidence}
+                            setInitiativeConfidence={setInitiativeConfidence}
+                            initiativePercentage={initiativePercentage}
+                            setInitiativePercentage={setInitiativePercentage}
+                            initiativeNotes={initiativeNotes}
+                            setInitiativeNotes={setInitiativeNotes}
+                            lastKeyResultValues={lastKeyResultValues}
+                            lastInitiativeValues={lastInitiativeValues}
+                            activeTab={activeTab}
+                          />
+                          {objective.initiatives
+                            .filter(initiative => !initiative.deleted)
+                            .map(initiative => (
+                              <InitiativeRow
+                                key={initiative.id}
+                                initiative={initiative}
+                                initiativeStatus={initiativeStatus}
+                                setInitiativeStatus={setInitiativeStatus}
+                                initiativeConfidence={initiativeConfidence}
+                                setInitiativeConfidence={setInitiativeConfidence}
+                                initiativePercentage={initiativePercentage}
+                                setInitiativePercentage={setInitiativePercentage}
+                                initiativeNotes={initiativeNotes}
+                                setInitiativeNotes={setInitiativeNotes}
+                                lastInitiativeValue={lastInitiativeValues[initiative.id]}
+                              />
+                          ))}
+                        </React.Fragment>
+                      ))}
+                    </TableBody>
+                  </Table>
 
-                <div className="mt-8 flex justify-center">
-                  <Button 
-                    size="lg" 
-                    onClick={handleSubmitCheckIn}
-                    disabled={
-                      Object.keys(keyResultValues).length === 0 && 
-                      Object.keys(initiativeStatus).length === 0
-                    }
-                  >
-                    Submit Check-in
-                  </Button>
-                </div>
-              </>
-            );
-          }}
-        </DataFetcher>
-      </div>
+                  <div className="mt-8 flex justify-center">
+                    <Button 
+                      size="lg" 
+                      onClick={handleSubmitCheckIn}
+                      disabled={
+                        Object.keys(keyResultValues).length === 0 && 
+                        Object.keys(initiativeStatus).length === 0
+                      }
+                    >
+                      Submit Check-in
+                    </Button>
+                  </div>
+                </>
+              );
+            }}
+          </DataFetcher>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
