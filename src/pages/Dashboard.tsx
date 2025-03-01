@@ -1,4 +1,3 @@
-<lov-code>
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { format, addDays } from "date-fns";
@@ -533,7 +532,6 @@ function Dashboard() {
     setIsInitiativeDialogOpen(true);
   };
 
-  // Add these new functions to handle bulk adding of key results and initiatives
   const handleAddKeyResults = async (keyResults: any[]) => {
     try {
       // Create multiple key results in Supabase
@@ -1036,4 +1034,6 @@ function Dashboard() {
           </Button>
         </TableCell>
         <TableCell className="text-right">
-          <
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost
