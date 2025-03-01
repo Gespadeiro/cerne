@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Textarea } from "@/components/ui/textarea";
 
 interface LastCheckInValues {
   [keyResultId: string]: number;
@@ -39,9 +40,11 @@ const CheckIn = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [keyResultValues, setKeyResultValues] = useState<Record<string, string>>({});
   const [keyResultConfidence, setKeyResultConfidence] = useState<Record<string, string>>({});
+  const [keyResultNotes, setKeyResultNotes] = useState<Record<string, string>>({});
   const [initiativeStatus, setInitiativeStatus] = useState<Record<string, string>>({});
   const [initiativeConfidence, setInitiativeConfidence] = useState<Record<string, string>>({});
   const [initiativePercentage, setInitiativePercentage] = useState<Record<string, string>>({});
+  const [initiativeNotes, setInitiativeNotes] = useState<Record<string, string>>({});
   const [lastKeyResultValues, setLastKeyResultValues] = useState<LastCheckInValues>({});
   const [lastInitiativeValues, setLastInitiativeValues] = useState<LastInitiativeValues>({});
   const { toast } = useToast();
@@ -231,7 +234,7 @@ const CheckIn = () => {
           key_result_id: keyResultId,
           current_value: Number(value),
           confidence_level: Number(keyResultConfidence[keyResultId] || 5),
-          notes: ''
+          notes: keyResultNotes[keyResultId] || ''
         }));
 
       if (keyResultCheckIns.length > 0) {
@@ -258,7 +261,7 @@ const CheckIn = () => {
           progress_status: status,
           progress_percentage: initiativePercentage[initiativeId] ? Number(initiativePercentage[initiativeId]) : 0,
           confidence_level: Number(initiativeConfidence[initiativeId] || 5),
-          notes: ''
+          notes: initiativeNotes[initiativeId] || ''
         }));
 
       if (initiativeCheckIns.length > 0) {
@@ -287,9 +290,11 @@ const CheckIn = () => {
       // Reset the form
       setKeyResultValues({});
       setKeyResultConfidence({});
+      setKeyResultNotes({});
       setInitiativeStatus({});
       setInitiativePercentage({});
       setInitiativeConfidence({});
+      setInitiativeNotes({});
     } catch (error: any) {
       toast({
         title: "Error submitting check-in",
@@ -347,6 +352,7 @@ const CheckIn = () => {
                               <TableHead className="font-semibold w-[120px]">Goal Value</TableHead>
                               <TableHead className="font-semibold w-[150px]">Check-in Value</TableHead>
                               <TableHead className="font-semibold w-[150px]">Confidence Level</TableHead>
+                              <TableHead className="font-semibold">Observations</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -390,6 +396,17 @@ const CheckIn = () => {
                                       </SelectContent>
                                     </Select>
                                   </TableCell>
+                                  <TableCell>
+                                    <Textarea 
+                                      placeholder="Add notes or observations"
+                                      className="w-full bg-background/50"
+                                      value={keyResultNotes[kr.id] || ''}
+                                      onChange={(e) => setKeyResultNotes({
+                                        ...keyResultNotes,
+                                        [kr.id]: e.target.value
+                                      })}
+                                    />
+                                  </TableCell>
                                 </TableRow>
                             ))}
                           </TableBody>
@@ -421,6 +438,7 @@ const CheckIn = () => {
                               <TableHead className="font-semibold w-[15%]">Current Percentage</TableHead>
                               <TableHead className="font-semibold w-[15%]">Check-in Percentage</TableHead>
                               <TableHead className="font-semibold w-[15%]">Confidence Level</TableHead>
+                              <TableHead className="font-semibold">Observations</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -489,6 +507,17 @@ const CheckIn = () => {
                                         ))}
                                       </SelectContent>
                                     </Select>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Textarea 
+                                      placeholder="Add notes or observations"
+                                      className="w-full bg-background/50"
+                                      value={initiativeNotes[initiative.id] || ''}
+                                      onChange={(e) => setInitiativeNotes({
+                                        ...initiativeNotes,
+                                        [initiative.id]: e.target.value
+                                      })}
+                                    />
                                   </TableCell>
                                 </TableRow>
                             ))}

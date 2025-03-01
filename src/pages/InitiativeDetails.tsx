@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,6 +71,7 @@ const InitiativeDetails = () => {
           progress_percentage,
           confidence_level,
           notes,
+          check_in_id,
           check_ins(date)
         `)
         .eq('initiative_id', id)
