@@ -40,7 +40,7 @@ export function KeyResultSelect({ form, selectedObjectiveId, objectives }: KeyRe
                 <SelectValue placeholder="Select a key result" />
               </SelectTrigger>
               <SelectContent className="bg-background">
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {keyResults.map((kr) => (
                   <SelectItem key={kr.id} value={kr.id}>
                     {kr.name}

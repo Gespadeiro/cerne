@@ -61,7 +61,7 @@ export function InitiativeForm({
     // Ensure the data is properly formatted
     const formattedData = {
       ...data,
-      keyResultId: data.keyResultId || undefined, // Convert empty string to undefined
+      keyResultId: data.keyResultId === "none" || data.keyResultId === "" ? undefined : data.keyResultId,
     };
     
     onSubmit(formattedData);
