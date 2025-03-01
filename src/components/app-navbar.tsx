@@ -61,19 +61,21 @@ export function AppNavbar() {
         </div>
       </div>
       
-      {/* Mobile Navigation - Properly centered */}
-      <div className="md:hidden flex items-center justify-center space-x-6 overflow-x-auto px-2 pt-1 mt-1 w-full">
-        {navItems.map((item) => (
-          <Link key={item.path} to={item.path} className="flex-shrink-0">
-            <Button 
-              variant={isActive(item.path) ? "default" : "ghost"} 
-              size="icon"
-              className={`w-10 h-10 ${isActive(item.path) ? "bg-cerne-blue hover:bg-cerne-blue/90 text-white" : ""}`}
-            >
-              <item.icon className="h-5 w-5" />
-            </Button>
-          </Link>
-        ))}
+      {/* Mobile Navigation - Centered */}
+      <div className="md:hidden flex justify-center w-full pt-1 mt-1">
+        <div className="flex items-center justify-center space-x-6">
+          {navItems.map((item) => (
+            <Link key={item.path} to={item.path} className="flex-shrink-0">
+              <Button 
+                variant={isActive(item.path) ? "default" : "ghost"} 
+                size="icon"
+                className={`w-10 h-10 ${isActive(item.path) ? "bg-cerne-blue hover:bg-cerne-blue/90 text-white" : ""}`}
+              >
+                <item.icon className="h-5 w-5" />
+              </Button>
+            </Link>
+          ))}
+        </div>
       </div>
     </nav>
   );
