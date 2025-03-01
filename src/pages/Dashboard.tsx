@@ -1,3 +1,4 @@
+<lov-code>
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { format, addDays } from "date-fns";
@@ -1036,4 +1037,4 @@ function Dashboard() {
         <TableCell className="text-right">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost
+              <Button
