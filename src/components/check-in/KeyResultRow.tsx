@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import type { KeyResult } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,13 +33,24 @@ export const KeyResultRow: React.FC<KeyResultRowProps> = ({
   setKeyResultNotes,
   lastKeyResultValue,
 }) => {
+  const navigate = useNavigate();
+
+  const handleRowClick = () => {
+    navigate(`/key-results/${keyResult.id}`);
+  };
+
   return (
-    <tr>
-      <td className="pl-10 py-4 font-medium">{keyResult.name}</td>
+    <tr className="hover:bg-muted/50 cursor-pointer">
+      <td 
+        className="pl-10 py-4 font-medium"
+        onClick={handleRowClick}
+      >
+        {keyResult.name}
+      </td>
       <td className="px-6 py-4">{keyResult.startingValue}</td>
       <td className="px-6 py-4">{lastKeyResultValue !== undefined ? lastKeyResultValue : keyResult.startingValue}</td>
       <td className="px-6 py-4">{keyResult.goalValue}</td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
         <Input 
           type="text" 
           placeholder="Enter value"
@@ -50,7 +62,7 @@ export const KeyResultRow: React.FC<KeyResultRowProps> = ({
           })}
         />
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
         <Select
           value={keyResultConfidence[keyResult.id]}
           onValueChange={(value) => setKeyResultConfidence({
@@ -70,7 +82,7 @@ export const KeyResultRow: React.FC<KeyResultRowProps> = ({
           </SelectContent>
         </Select>
       </td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
         <Textarea 
           placeholder="Add notes or observations"
           className="w-full bg-background/50"
