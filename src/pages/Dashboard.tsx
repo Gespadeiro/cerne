@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -420,7 +419,7 @@ const Dashboard = () => {
 
   return (
     <div className="w-full p-6 bg-background min-h-screen">
-      <div className="flex flex-col items-start mb-8 w-full">
+      <div className="flex flex-col items-start mb-6 w-full">
         <div className="flex justify-between items-center w-full mb-4">
           <h1 className="text-4xl font-bold gradient-text">Dashboard</h1>
           <div className="flex gap-4">
@@ -485,7 +484,7 @@ const Dashboard = () => {
             </Dialog>
           </div>
         </div>
-        <p className="text-muted-foreground max-w-2xl">
+        <p className="text-muted-foreground w-full">
           Monitor your objectives, key results, and initiatives all in one place. 
           Track progress and stay aligned with your strategic goals.
         </p>

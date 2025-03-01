@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { isToday } from "date-fns";
@@ -120,7 +119,7 @@ const Index = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex flex-col items-start mb-12">
+      <div className="flex flex-col items-start mb-6">
         <h1 className="text-4xl font-bold gradient-text mb-4">Welcome to Cerne</h1>
         <p className="text-muted-foreground w-full">
           Your personal OKR management system. Track your objectives, key results, and initiatives to achieve your goals.
