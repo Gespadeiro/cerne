@@ -1,18 +1,14 @@
-
 import React from "react";
 import type { Objective } from "@/lib/types";
-
 interface LastCheckInValues {
   [keyResultId: string]: number;
 }
-
 interface LastInitiativeValues {
   [initiativeId: string]: {
     status: string;
     percentage: number;
   };
 }
-
 interface ObjectiveSectionProps {
   objective: Objective;
   keyResultValues: Record<string, string>;
@@ -33,7 +29,6 @@ interface ObjectiveSectionProps {
   lastInitiativeValues: LastInitiativeValues;
   activeTab: string;
 }
-
 export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
   objective,
   keyResultValues,
@@ -54,11 +49,9 @@ export const ObjectiveSection: React.FC<ObjectiveSectionProps> = ({
   lastInitiativeValues,
   activeTab
 }) => {
-  return (
-    <tr className="bg-muted/30">
+  return <tr className="bg-muted/30">
       <td colSpan={activeTab === "key-results" ? 7 : 6} className="px-6 py-4">
-        <h2 className="text-2xl font-bold gradient-text">{objective.name}</h2>
+        <h2 className="gradient-text font-semibold text-xl">{objective.name}</h2>
       </td>
-    </tr>
-  );
+    </tr>;
 };
