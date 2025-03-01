@@ -61,8 +61,8 @@ export function AppNavbar() {
         </div>
       </div>
       
-      {/* Mobile Navigation - Centered, single row */}
-      <div className="md:hidden flex items-center justify-center space-x-4 overflow-x-auto px-2 pt-1 mt-1">
+      {/* Mobile Navigation - Properly centered */}
+      <div className="md:hidden flex items-center justify-center space-x-6 overflow-x-auto px-2 pt-1 mt-1 w-full">
         {navItems.map((item) => (
           <Link key={item.path} to={item.path} className="flex-shrink-0">
             <Button 

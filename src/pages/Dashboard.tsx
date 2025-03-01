@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronDown } from "lucide-react";
@@ -493,17 +492,15 @@ const Dashboard = () => {
             </Dialog>
           </div>
           
-          {/* Mobile: Single dropdown menu */}
+          {/* Mobile: Single dropdown menu with improved styling */}
           <div className="md:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add
-                  <ChevronDown className="h-4 w-4 ml-1" />
+                <Button className="ml-4">
+                  <Plus className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-background">
+              <DropdownMenuContent align="end" className="bg-white text-black">
                 <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
                   <DialogTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
