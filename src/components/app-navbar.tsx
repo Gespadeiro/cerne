@@ -22,7 +22,7 @@ export function AppNavbar() {
   const navItems = [
     { path: "/home", label: "Home", icon: Home },
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/check-in", label: "Check In", icon: ClipboardCheck },
+    { path: "/check-in", label: "Check-In", icon: ClipboardCheck },
     { path: "/archive", label: "Archive", icon: Archive }
   ];
 
