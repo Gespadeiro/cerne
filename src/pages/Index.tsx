@@ -122,7 +122,7 @@ const Index = () => {
     <div className="container mx-auto p-6">
       <div className="flex flex-col items-start mb-12">
         <h1 className="text-4xl font-bold gradient-text mb-4">Welcome to Cerne</h1>
-        <p className="text-muted-foreground max-w-2xl">
+        <p className="text-muted-foreground w-full">
           Your personal OKR management system. Track your objectives, key results, and initiatives to achieve your goals.
         </p>
       </div>

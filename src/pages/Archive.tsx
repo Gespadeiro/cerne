@@ -1,3 +1,4 @@
+
 import { Objective, Initiative, KeyResult } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -251,7 +252,7 @@ const Archive = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-start mb-12">
           <h1 className="text-4xl font-bold gradient-text mb-4">Archive</h1>
-          <p className="text-muted-foreground max-w-2xl">
+          <p className="text-muted-foreground w-full">
             Review and manage your archived objectives, key results, and initiatives. Restore items or delete them permanently.
           </p>
         </div>
