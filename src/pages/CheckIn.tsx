@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import type { Objective, CheckIn as CheckInType, KeyResultCheckIn, InitiativeCheckIn } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -107,63 +106,61 @@ const CheckIn = () => {
       <div className="w-full">
         <CheckInHeader />
         
-        <div className="glass-card p-6 w-full">
-          <DataFetcher>
-            {({ objectives, isLoading, lastKeyResultValues, lastInitiativeValues }) => {
-              if (isLoading) {
-                return (
-                  <div className="w-full p-6 min-h-screen flex items-center justify-center">
-                    <div className="text-xl">Loading your objectives...</div>
-                  </div>
-                );
-              }
-
-              if (objectives.length === 0) {
-                return <NoObjectivesMessage />;
-              }
-
+        <DataFetcher>
+          {({ objectives, isLoading, lastKeyResultValues, lastInitiativeValues }) => {
+            if (isLoading) {
               return (
-                <>
-                  {objectives.map(objective => (
-                    <ObjectiveSection
-                      key={objective.id}
-                      objective={objective}
-                      keyResultValues={keyResultValues}
-                      setKeyResultValues={setKeyResultValues}
-                      keyResultConfidence={keyResultConfidence}
-                      setKeyResultConfidence={setKeyResultConfidence}
-                      keyResultNotes={keyResultNotes}
-                      setKeyResultNotes={setKeyResultNotes}
-                      initiativeStatus={initiativeStatus}
-                      setInitiativeStatus={setInitiativeStatus}
-                      initiativeConfidence={initiativeConfidence}
-                      setInitiativeConfidence={setInitiativeConfidence}
-                      initiativePercentage={initiativePercentage}
-                      setInitiativePercentage={setInitiativePercentage}
-                      initiativeNotes={initiativeNotes}
-                      setInitiativeNotes={setInitiativeNotes}
-                      lastKeyResultValues={lastKeyResultValues}
-                      lastInitiativeValues={lastInitiativeValues}
-                    />
-                  ))}
-
-                  <div className="mt-8 flex justify-center">
-                    <Button 
-                      size="lg" 
-                      onClick={handleSubmitCheckIn}
-                      disabled={
-                        Object.keys(keyResultValues).length === 0 && 
-                        Object.keys(initiativeStatus).length === 0
-                      }
-                    >
-                      Submit Check-in
-                    </Button>
-                  </div>
-                </>
+                <div className="w-full p-6 min-h-screen flex items-center justify-center">
+                  <div className="text-xl">Loading your objectives...</div>
+                </div>
               );
-            }}
-          </DataFetcher>
-        </div>
+            }
+
+            if (objectives.length === 0) {
+              return <NoObjectivesMessage />;
+            }
+
+            return (
+              <>
+                {objectives.map(objective => (
+                  <ObjectiveSection
+                    key={objective.id}
+                    objective={objective}
+                    keyResultValues={keyResultValues}
+                    setKeyResultValues={setKeyResultValues}
+                    keyResultConfidence={keyResultConfidence}
+                    setKeyResultConfidence={setKeyResultConfidence}
+                    keyResultNotes={keyResultNotes}
+                    setKeyResultNotes={setKeyResultNotes}
+                    initiativeStatus={initiativeStatus}
+                    setInitiativeStatus={setInitiativeStatus}
+                    initiativeConfidence={initiativeConfidence}
+                    setInitiativeConfidence={setInitiativeConfidence}
+                    initiativePercentage={initiativePercentage}
+                    setInitiativePercentage={setInitiativePercentage}
+                    initiativeNotes={initiativeNotes}
+                    setInitiativeNotes={setInitiativeNotes}
+                    lastKeyResultValues={lastKeyResultValues}
+                    lastInitiativeValues={lastInitiativeValues}
+                  />
+                ))}
+
+                <div className="mt-8 flex justify-center">
+                  <Button 
+                    size="lg" 
+                    onClick={handleSubmitCheckIn}
+                    disabled={
+                      Object.keys(keyResultValues).length === 0 && 
+                      Object.keys(initiativeStatus).length === 0
+                    }
+                  >
+                    Submit Check-in
+                  </Button>
+                </div>
+              </>
+            );
+          }}
+        </DataFetcher>
       </div>
     </div>
   );
