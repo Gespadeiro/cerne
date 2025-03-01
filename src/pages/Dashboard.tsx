@@ -421,7 +421,7 @@ const Dashboard = () => {
   return (
     <div className="w-full p-6 bg-background min-h-screen">
       <div className="flex justify-between items-center mb-8 w-full">
-        <h1 className="text-4xl font-bold">Dashboard</h1>
+        <h1 className="text-4xl font-bold gradient-text">Dashboard</h1>
         <div className="flex gap-4">
           <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
             <DialogTrigger asChild>

@@ -120,7 +120,7 @@ const Index = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-4xl font-bold mb-8">Welcome to Cerne</h1>
+      <h1 className="text-4xl font-bold gradient-text mb-8">Welcome to Cerne</h1>
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           {[...Array(5)].map((_, i) => (
