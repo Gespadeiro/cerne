@@ -2,14 +2,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { KeyResult } from "@/lib/types";
+import { KeyResult, KeyResultCheckIn } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { format } from "date-fns";
 
 const KeyResultDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [keyResult, setKeyResult] = useState<KeyResult | null>(null);
+  const [checkIns, setCheckIns] = useState<KeyResultCheckIn[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -17,6 +22,7 @@ const KeyResultDetails = () => {
   useEffect(() => {
     if (id) {
       fetchKeyResult();
+      fetchCheckIns();
     }
   }, [id]);
 
@@ -41,6 +47,8 @@ const KeyResultDetails = () => {
         endDate: new Date(data.end_date),
         startingValue: Number(data.starting_value),
         goalValue: Number(data.goal_value),
+        currentValue: data.current_value !== null ? Number(data.current_value) : undefined,
+        confidenceLevel: data.confidence_level !== null ? Number(data.confidence_level) : undefined,
         deleted: data.deleted
       });
     } catch (error: any) {
@@ -53,6 +61,72 @@ const KeyResultDetails = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const fetchCheckIns = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('key_result_check_ins')
+        .select(`
+          id,
+          current_value,
+          confidence_level,
+          notes,
+          check_ins(date)
+        `)
+        .eq('key_result_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedCheckIns = data.map((item: any) => ({
+        id: item.id,
+        keyResultId: id as string,
+        checkInId: item.check_in_id,
+        currentValue: Number(item.current_value),
+        confidenceLevel: Number(item.confidence_level),
+        notes: item.notes,
+        date: new Date(item.check_ins?.date || new Date())
+      }));
+
+      setCheckIns(formattedCheckIns);
+    } catch (error: any) {
+      console.error("Error fetching check-ins:", error);
+      toast({
+        title: "Error loading check-ins",
+        description: error.message || "An error occurred while loading the check-ins.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getChartData = () => {
+    if (!checkIns.length) return [];
+
+    // Sort check-ins by date (ascending)
+    const sortedCheckIns = [...checkIns].sort((a, b) => 
+      a.date.getTime() - b.date.getTime()
+    );
+
+    // Start with initial value
+    const chartData = keyResult?.startingValue !== undefined ? [
+      {
+        date: format(keyResult.startDate, "MMM d"),
+        value: keyResult.startingValue,
+        confidence: null
+      }
+    ] : [];
+
+    // Add check-in data points
+    sortedCheckIns.forEach(checkIn => {
+      chartData.push({
+        date: format(checkIn.date, "MMM d"),
+        value: checkIn.currentValue,
+        confidence: checkIn.confidenceLevel
+      });
+    });
+
+    return chartData;
   };
 
   if (isLoading) {
@@ -72,37 +146,120 @@ const KeyResultDetails = () => {
         <h1 className="text-3xl font-bold">{keyResult.name}</h1>
       </div>
 
-      <div className="grid gap-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Description</h2>
-          <p className="text-muted-foreground">{keyResult.description || "No description provided."}</p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Details card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
+              <p>{keyResult.description || "No description provided."}</p>
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Timeline</h3>
+              <p>
+                {format(keyResult.startDate, "MMM d, yyyy")} - {format(keyResult.endDate, "MMM d, yyyy")}
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Starting Value</h3>
+                <p className="text-lg font-medium">{keyResult.startingValue}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Goal Value</h3>
+                <p className="text-lg font-medium">{keyResult.goalValue}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Current Value</h3>
+                <p className="text-lg font-medium">
+                  {keyResult.currentValue !== undefined ? keyResult.currentValue : "Not set"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Timeline</h2>
-          <p className="text-muted-foreground">
-            {new Date(keyResult.startDate).toLocaleDateString()} - {new Date(keyResult.endDate).toLocaleDateString()}
-          </p>
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Values</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Starting Value</p>
-              <p className="text-lg font-medium">{keyResult.startingValue}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Goal Value</p>
-              <p className="text-lg font-medium">{keyResult.goalValue}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Current Value</p>
-              <p className="text-lg font-medium">{keyResult.currentValue || "Not set"}</p>
-            </div>
-          </div>
-        </div>
+        {/* Progress chart card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Progress Over Time</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {checkIns.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={getChartData()} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" domain={[0, 10]} />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    yAxisId="left"
+                    type="monotone" 
+                    dataKey="value" 
+                    name="Value" 
+                    stroke="#8884d8" 
+                    activeDot={{ r: 8 }} 
+                  />
+                  <Line 
+                    yAxisId="right"
+                    type="monotone" 
+                    dataKey="confidence" 
+                    name="Confidence" 
+                    stroke="#82ca9d" 
+                    connectNulls
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                No check-in data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Check-ins history table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Check-in History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {checkIns.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Confidence</TableHead>
+                  <TableHead>Notes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {checkIns.map((checkIn) => (
+                  <TableRow key={checkIn.id}>
+                    <TableCell>{format(checkIn.date, "MMM d, yyyy")}</TableCell>
+                    <TableCell>{checkIn.currentValue}</TableCell>
+                    <TableCell>{checkIn.confidenceLevel}/10</TableCell>
+                    <TableCell>{checkIn.notes || "-"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              No check-in history available
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

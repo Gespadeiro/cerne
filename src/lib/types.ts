@@ -53,6 +53,7 @@ export interface KeyResultCheckIn {
   currentValue: number;
   confidenceLevel: number;
   notes?: string;
+  date: Date;
 }
 
 export interface InitiativeCheckIn {
@@ -61,5 +62,7 @@ export interface InitiativeCheckIn {
   initiativeId: string;
   progressStatus: 'not-started' | 'in-progress' | 'completed' | 'blocked';
   confidenceLevel: number;
+  progress?: number;
   notes?: string;
+  date: Date;
 }
