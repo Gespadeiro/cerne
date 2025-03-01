@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,12 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Objective } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { ObjectiveForm } from "@/components/objective-form";
@@ -422,7 +429,9 @@ const Dashboard = () => {
       <div className="flex flex-col items-start mb-6 w-full">
         <div className="flex justify-between items-center w-full mb-4">
           <h1 className="text-4xl font-bold gradient-text">Dashboard</h1>
-          <div className="flex gap-4">
+          
+          {/* Desktop: Multiple add buttons */}
+          <div className="hidden md:flex gap-4">
             <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -483,6 +492,77 @@ const Dashboard = () => {
               </DialogContent>
             </Dialog>
           </div>
+          
+          {/* Mobile: Single dropdown menu */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background">
+                <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
+                  <DialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      Add Objective
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Objective</DialogTitle>
+                      <DialogDescription>
+                        Create a new objective to track your goals
+                      </DialogDescription>
+                    </DialogHeader>
+                    <ObjectiveForm onSubmit={onObjectiveSubmit} />
+                  </DialogContent>
+                </Dialog>
+                
+                <Dialog open={isKeyResultDialogOpen} onOpenChange={setIsKeyResultDialogOpen}>
+                  <DialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      Add Key Result
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Key Result</DialogTitle>
+                      <DialogDescription>
+                        Create a new key result for an existing objective
+                      </DialogDescription>
+                    </DialogHeader>
+                    <KeyResultForm 
+                      objectives={objectives}
+                      onSubmit={onKeyResultSubmit}
+                    />
+                  </DialogContent>
+                </Dialog>
+                
+                <Dialog open={isInitiativeDialogOpen} onOpenChange={setIsInitiativeDialogOpen}>
+                  <DialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      Add Initiative
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Initiative</DialogTitle>
+                      <DialogDescription>
+                        Create a new initiative for an existing objective
+                      </DialogDescription>
+                    </DialogHeader>
+                    <InitiativeForm 
+                      objectives={objectives}
+                      onSubmit={onInitiativeSubmit}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         <p className="text-muted-foreground w-full">
           Monitor your objectives, key results, and initiatives all in one place. 
@@ -495,7 +575,7 @@ const Dashboard = () => {
           <div className="text-center py-20 bg-muted/20 rounded-lg">
             <h2 className="text-2xl font-semibold mb-2">No objectives yet</h2>
             <p className="text-muted-foreground mb-6">
-              Create your first objective using the "Add Objective" button at the top of the page
+              Create your first objective using the "Add" button at the top of the page
             </p>
           </div>
         ) : (
