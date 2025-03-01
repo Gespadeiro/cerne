@@ -102,7 +102,7 @@ export function ObjectiveRow({
         <InitiativeRow
           key={initiative.id}
           initiative={initiative}
-          indentLevel={10}
+          indentLevel={4}
           onClick={() => onInitiativeClick(initiative.id)}
           onEdit={(e) => onInitiativeEdit(initiative, e)}
           onDelete={(e) => onInitiativeDelete(initiative.id, e)}

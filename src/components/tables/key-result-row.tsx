@@ -75,7 +75,7 @@ export function KeyResultRow({
         <InitiativeRow
           key={initiative.id}
           initiative={initiative}
-          indentLevel={14}
+          indentLevel={8}
           onClick={() => onInitiativeClick(initiative.id)}
           onEdit={(e) => onInitiativeEdit(initiative, e)}
           onDelete={(e) => onInitiativeDelete(initiative.id, e)}
