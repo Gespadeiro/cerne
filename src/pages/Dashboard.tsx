@@ -1,3 +1,4 @@
+<lov-code>
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { format, addDays } from "date-fns";
@@ -685,7 +686,7 @@ function Dashboard() {
                         keyResult={keyResult}
                         objective={findObjectiveById(keyResult.objectiveId)}
                         onDelete={() => handleDeleteKeyResult(keyResult.id)}
-                        onEdit={() => handleEditKeyResult(keyResult.id)}
+                        onEdit={() => setKeyResultToEdit(keyResult.id)}
                       />
                     ))}
                     {allKeyResults.length === 0 && (
@@ -734,7 +735,7 @@ function Dashboard() {
                             : undefined
                         }
                         onDelete={() => handleDeleteInitiative(initiative.id)}
-                        onEdit={() => handleEditInitiative(initiative.id)}
+                        onEdit={() => setInitiativeToEdit(initiative.id)}
                         onToggleStatus={() =>
                           handleToggleInitiativeStatus(initiative)
                         }
@@ -1035,4 +1036,4 @@ function Dashboard() {
           </Button>
         </TableCell>
         <TableCell className="text-right">
-          <DropdownMenu>
+          <
