@@ -420,8 +420,14 @@ const Dashboard = () => {
 
   return (
     <div className="w-full p-6 bg-background min-h-screen">
-      <div className="flex justify-between items-center mb-8 w-full">
-        <h1 className="text-4xl font-bold gradient-text">Dashboard</h1>
+      <div className="flex flex-col items-start mb-8 w-full">
+        <h1 className="text-4xl font-bold gradient-text mb-4">Dashboard</h1>
+        <p className="text-muted-foreground max-w-2xl">
+          Monitor your objectives, key results, and initiatives all in one place. 
+          Track progress and stay aligned with your strategic goals.
+        </p>
+      </div>
+      <div className="flex justify-end mb-8 w-full">
         <div className="flex gap-4">
           <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
             <DialogTrigger asChild>
@@ -488,11 +494,9 @@ const Dashboard = () => {
         {objectives.length === 0 ? (
           <div className="text-center py-20 bg-muted/20 rounded-lg">
             <h2 className="text-2xl font-semibold mb-2">No objectives yet</h2>
-            <p className="text-muted-foreground mb-6">Create your first objective to get started</p>
-            <Button onClick={() => setIsObjectiveDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Your First Objective
-            </Button>
+            <p className="text-muted-foreground mb-6">
+              Create your first objective using the "Add Objective" button at the top of the page
+            </p>
           </div>
         ) : (
           <div className="w-full">
