@@ -66,3 +66,11 @@ export interface InitiativeCheckIn {
   notes?: string;
   date: Date;
 }
+
+export interface AISuggestion {
+  id: string;
+  type: 'key-result' | 'initiative';
+  name: string;
+  description: string;
+  selected: boolean;
+}
