@@ -421,75 +421,76 @@ const Dashboard = () => {
   return (
     <div className="w-full p-6 bg-background min-h-screen">
       <div className="flex flex-col items-start mb-8 w-full">
-        <h1 className="text-4xl font-bold gradient-text mb-4">Dashboard</h1>
+        <div className="flex justify-between items-center w-full mb-4">
+          <h1 className="text-4xl font-bold gradient-text">Dashboard</h1>
+          <div className="flex gap-4">
+            <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Objective
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Objective</DialogTitle>
+                  <DialogDescription>
+                    Create a new objective to track your goals
+                  </DialogDescription>
+                </DialogHeader>
+                <ObjectiveForm onSubmit={onObjectiveSubmit} />
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isKeyResultDialogOpen} onOpenChange={setIsKeyResultDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Key Result
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Key Result</DialogTitle>
+                  <DialogDescription>
+                    Create a new key result for an existing objective
+                  </DialogDescription>
+                </DialogHeader>
+                <KeyResultForm 
+                  objectives={objectives}
+                  onSubmit={onKeyResultSubmit}
+                />
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isInitiativeDialogOpen} onOpenChange={setIsInitiativeDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Initiative
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Initiative</DialogTitle>
+                  <DialogDescription>
+                    Create a new initiative for an existing objective
+                  </DialogDescription>
+                </DialogHeader>
+                <InitiativeForm 
+                  objectives={objectives}
+                  onSubmit={onInitiativeSubmit}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
         <p className="text-muted-foreground max-w-2xl">
           Monitor your objectives, key results, and initiatives all in one place. 
           Track progress and stay aligned with your strategic goals.
         </p>
       </div>
-      <div className="flex justify-end mb-8 w-full">
-        <div className="flex gap-4">
-          <Dialog open={isObjectiveDialogOpen} onOpenChange={setIsObjectiveDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Objective
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Objective</DialogTitle>
-                <DialogDescription>
-                  Create a new objective to track your goals
-                </DialogDescription>
-              </DialogHeader>
-              <ObjectiveForm onSubmit={onObjectiveSubmit} />
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isKeyResultDialogOpen} onOpenChange={setIsKeyResultDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Key Result
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Key Result</DialogTitle>
-                <DialogDescription>
-                  Create a new key result for an existing objective
-                </DialogDescription>
-              </DialogHeader>
-              <KeyResultForm 
-                objectives={objectives}
-                onSubmit={onKeyResultSubmit}
-              />
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isInitiativeDialogOpen} onOpenChange={setIsInitiativeDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Initiative
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Initiative</DialogTitle>
-                <DialogDescription>
-                  Create a new initiative for an existing objective
-                </DialogDescription>
-              </DialogHeader>
-              <InitiativeForm 
-                objectives={objectives}
-                onSubmit={onInitiativeSubmit}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+      
       <div className="mt-6 w-full">
         {objectives.length === 0 ? (
           <div className="text-center py-20 bg-muted/20 rounded-lg">
