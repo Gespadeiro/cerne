@@ -61,17 +61,16 @@ export function AppNavbar() {
         </div>
       </div>
       
-      {/* Mobile Navigation */}
-      <div className="md:hidden flex items-center justify-between overflow-x-auto px-2 py-1 mt-1">
+      {/* Mobile Navigation - More compact, single row */}
+      <div className="md:hidden flex items-center justify-between overflow-x-auto px-2 pt-1 mt-1">
         {navItems.map((item) => (
           <Link key={item.path} to={item.path} className="mx-1 flex-shrink-0">
             <Button 
               variant={isActive(item.path) ? "default" : "ghost"} 
-              size="sm"
-              className={`flex flex-col items-center gap-1 h-auto py-1 px-2 ${isActive(item.path) ? "bg-cerne-blue hover:bg-cerne-blue/90 text-white" : ""}`}
+              size="icon"
+              className={`w-10 h-10 ${isActive(item.path) ? "bg-cerne-blue hover:bg-cerne-blue/90 text-white" : ""}`}
             >
-              <item.icon className="h-4 w-4" />
-              <span className="text-xs">{item.label}</span>
+              <item.icon className="h-5 w-5" />
             </Button>
           </Link>
         ))}
