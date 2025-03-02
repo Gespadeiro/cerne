@@ -1,8 +1,6 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Award, ClipboardCheck, LogIn, RocketIcon, UserPlus } from "lucide-react";
 
 const Landing = () => {
@@ -18,7 +16,6 @@ const Landing = () => {
             <Link to="/feedback" className="text-foreground hover:text-primary">
               Give Feedback
             </Link>
-            <ThemeToggle />
             <Link to="/auth">
               <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <LogIn className="h-4 w-4" />
