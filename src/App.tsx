@@ -11,20 +11,21 @@ import KeyResultEdit from "@/pages/KeyResultEdit";
 import InitiativeEdit from "@/pages/InitiativeEdit";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
+import Landing from "@/pages/Landing";
 import { AppNavbar } from "./components/app-navbar";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AuthProvider>
         <Router>
           <div className="flex flex-col min-h-screen">
             <AppNavbar />
             <main className="flex-1 w-full">
               <Routes>
-                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="/" element={<Landing />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route 
                   path="/home" 
