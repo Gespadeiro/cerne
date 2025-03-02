@@ -12,6 +12,7 @@ import InitiativeEdit from "@/pages/InitiativeEdit";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Landing from "@/pages/Landing";
+import Feedback from "@/pages/Feedback";
 import { AppNavbar } from "./components/app-navbar";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -21,9 +22,10 @@ const AppLayout = () => {
   const location = useLocation();
   const isLandingPage = location.pathname === "/";
   const isAuthPage = location.pathname === "/auth";
+  const isFeedbackPage = location.pathname === "/feedback";
 
-  // Don't show navbar on landing or auth pages
-  const showNavbar = !isLandingPage && !isAuthPage;
+  // Don't show navbar on landing, auth, or feedback pages
+  const showNavbar = !isLandingPage && !isAuthPage && !isFeedbackPage;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -32,6 +34,7 @@ const AppLayout = () => {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/feedback" element={<Feedback />} />
           <Route 
             path="/home" 
             element={

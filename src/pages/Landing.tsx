@@ -15,6 +15,9 @@ const Landing = () => {
             <h1 className="text-2xl font-bold gradient-text">Cerne</h1>
           </Link>
           <div className="flex items-center gap-4">
+            <Link to="/feedback" className="text-foreground hover:text-primary">
+              Give Feedback
+            </Link>
             <ThemeToggle />
             <Link to="/auth">
               <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -188,6 +191,7 @@ const Landing = () => {
             The OKR platform for purposeful growth
           </p>
           <div className="flex justify-center gap-6">
+            <Link to="/feedback" className="text-muted-foreground hover:text-foreground">Give Feedback</Link>
             <Link to="/auth" className="text-muted-foreground hover:text-foreground">Login</Link>
             <Link to="/auth?tab=signup" className="text-muted-foreground hover:text-foreground">Sign Up</Link>
           </div>
@@ -201,4 +205,3 @@ const Landing = () => {
 };
 
 export default Landing;
-

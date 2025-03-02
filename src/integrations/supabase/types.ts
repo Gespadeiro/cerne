@@ -33,6 +33,36 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          created_at: string
+          email: string
+          feedback_type: string
+          id: string
+          message: string
+          name: string
+          rating: number | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          feedback_type: string
+          id?: string
+          message: string
+          name: string
+          rating?: number | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          feedback_type?: string
+          id?: string
+          message?: string
+          name?: string
+          rating?: number | null
+        }
+        Relationships: []
+      }
       initiative_check_ins: {
         Row: {
           check_in_id: string
