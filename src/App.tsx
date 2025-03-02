@@ -22,9 +22,12 @@ const AppLayout = () => {
   const isLandingPage = location.pathname === "/";
   const isAuthPage = location.pathname === "/auth";
 
+  // Don't show navbar on landing or auth pages
+  const showNavbar = !isLandingPage && !isAuthPage;
+
   return (
     <div className="flex flex-col min-h-screen">
-      {!isLandingPage && <AppNavbar />}
+      {showNavbar && <AppNavbar />}
       <main className="flex-1 w-full">
         <Routes>
           <Route path="/" element={<Landing />} />
