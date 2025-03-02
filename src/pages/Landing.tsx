@@ -11,7 +11,9 @@ const Landing = () => {
       {/* Navigation */}
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold gradient-text">Cerne</h1>
+          <Link to="/">
+            <h1 className="text-2xl font-bold gradient-text">Cerne</h1>
+          </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Link to="/auth">
@@ -199,3 +201,4 @@ const Landing = () => {
 };
 
 export default Landing;
+
